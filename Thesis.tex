@@ -160,12 +160,35 @@ The Mahalanobis metric is a linear parametric distance function and is most comm
 
 structured prediction, predict complex outputs, sequences or trees, combinatorially many possible outputs, 0-1 loss not applicable, metric 
 
+%need to parameterize the distance function, need some form of training data
+%parametric distance metric: Mahalanobis distance, changing the matrix $M$ changes the distance metric, we can learn $M$ such that the distance satisfies our constraints
+%Suppose we have a pair of vectors $\vec{x}, \vec{y} \in \mathbb{R}^D$
+%\begin{equation}
+%d_{M}(\vec{x},\vec{y}) = \sqrt{(\vec{x}-\vec{y})^{T} \mat{M} (\vec{x}-\vec{y})}
+%\label{eq:mahalanobis_distance}
+%\end{equation}
+%metric: identity of indiscernibles: d(x,y) = 0 => x = y, symmetric: d(x,y) = d(y,x), non-negative: d(x,y) >= 0, sub-additive (triangle inequality): d(x,y) + d(y,z) >= d(x,z)
+%pseudo: relaxes identity of indiscernibles to: d(x,x) = 0, meaning that there might be y not equal to x such that d(x,y) = 0
+%Mahalanobis distance is pseudo-metric if $M$ is positive semi-definite and metric if $M$ is positive definite
+%Linear metric, can be rewritten as linear transformation of the input space, comes in handy for nearest neighbor retrieval since we can still use Euclidean distance between transformed points
+%rewrite $M = L^T L$, learn L, M is always PSD and the metric thus a pseudo metric, L is a linear transformation of the feature space such that Euclidean norm of transformed difference vector (or difference between transformed vectors) corresponds to $d_M$
+%\begin{equation}
+%d_{M}(\vec{x},\vec{y}) = ||\mat{L}(\vec{x}_{i}-\vec{y}_{i})||
+%\label{eq:mahalanobis_transformation}
+%\end{equation}
+%$||\mat{L}(\vec{x}_{i}-\vec{y}_{i})|| = ||\mat{L}\vec{x}_{i}-\mat{L}\vec{y}_{i}||$
+
 
 \subsubsection{Learning from discrete distinctions}
 
 Suppose we have a problem with discrete labels for the examples, for classification or clustering we would like distances between examples to be small if their labels are the same and large otherwise.
 
 \todo{Describe these methods (related work)}
+
+%suppose we have a problem with input space $\mathcal{X} \subseteq \mathbb{R}^n$ and as output discrete class labels $\mathcal{Y} = {1, 2, ..., C}$. Then we want distance to be small iff labels are the same. kNN example, clustering example
+%training set: subsets or pairs of objects which are similar. Many methods also use dissimilarity information: subsets or pairs of objects which are dissimiilar.
+%try to make within-class variance small, difference between different classes large
+%very applicable for classification tasks, but not so much for non-binary task such as those with a structured loss function, have to select some arbitrary cut-off for similarity or dissimilarity
 
 \subsubsection{Learning from rankings}
 
@@ -175,7 +198,8 @@ Suppose we have a problem without discrete labels but in which we try to find th
 
 \subsection{Semantic segmentation}
 
-
+%training set: ranking or triples of objects for which one is closer to the other
+%try to satisfy as many of these constraints as possible
 
 
 
@@ -232,144 +256,38 @@ define target distance as some function which we can sample, minimize empirical 
 \end{equation}
 
 
-
-
-
-
-
+%suppose a similarity measure which gives a real valued measure of similarity between two objects, inverted (dissimilarity measure) gives us a distance function or metric that we want to learn,
+%uses training data in a way that makes the method applicable to problems characterized by real-valued distance functions, such as a structured loss function
 %Applicable to problems characterized by real-valued distance functions, such as a structured loss function.
-%
 %We want distance to be inverse proportional to similarity. 
-%
 %Large margin approaches lead to dissimilar examples having sufficiently larger distance than similar examples, but does not enforce the more dissimilar examples to be further away than slightly dissimilar examples proportionally to their difference in dissimilarity. 
-%
 %Ranking constraint approaches do enforce this ranking, but doesn't enforce the proportionality.
-%
 %Metric regression directly approximates given real-valued dissimilarity measure and therefore satisfies all these constraints.
-%
+%we would like examples with a larger loss to have greater distance.
+
 %Metric regression is posed as a simple convex optimization problem which can be solved without special purpose solvers.
-%
-%
-%\subsection{Learning from distances}
-%
-%Suppose we have a problem with given distance function for training examples, for example a problem with a continuous output space or with structured output space coupled with a continuous loss function, we would like examples with a larger loss to have greater distance.
-%
-%\subsection{Convex optimization problem}
-%
 %Solution can be written as an unconstrained convex optimization problem.
 
-
-
-
-%\section{Metric regression}
-
-%This section presents our approach to metric learning which uses training data in a way that makes the method applicable to problems characterized by real-valued distance functions, such as a structured loss function. Section \ref{sec:metric_learning_background} presents the necessary background in metric learning and current approaches, while section \ref{sec:metric_regression} presents our adapted approach.
-
-
-
-
-
-%\subsection{Metric learning background}
-%\label{sec:metric_learning_background}
-
-%Suppose we have a problem in which we are interested in the similarity between input examples. These input examples are represented through a set of real-valued attributes, thus each example corresponds to a vector  $\vec{x} \in \mathbb{R}^n$ in the representation space. We now want to measure the similarity between two input vectors $\vec{x}_i$ and $\vec{x}_j$. Without any prior knowledge we could measure the Euclidean distance between 
-
-% compare $d(\vec{x}_i, \vec{x}_j) = ||\vec{x}_i - \vec{x}_j||_2$
-
-
-%$a \iff b$
-
-
-%learn a distance metric specific to the problem instead of relying on 'default' metrics (e.g. Euclidean), same data set and features but difffernt task
-
-
-
-
-%need to parameterize the distance function, need some form of training data
-
-
-%parametric distance metric: Mahalanobis distance, changing the matrix $M$ changes the distance metric, we can learn $M$ such that the distance is as close as possible to the distance function or similarity measure that we want to learn,
-%Suppose we have a pair of vectors $\vec{x}, \vec{y} \in \mathbb{R}^D$
-
-%\begin{equation}
-%d_{M}(\vec{x},\vec{y}) = \sqrt{(\vec{x}-\vec{y})^{T} \mat{M} (\vec{x}-\vec{y})}
-%\label{eq:mahalanobis_distance}
-%\end{equation}
-
-%metric: identity of indiscernibles: d(x,y) = 0 => x = y, symmetric: d(x,y) = d(y,x), non-negative: d(x,y) >= 0, sub-additive (triangle inequality): d(x,y) + d(y,z) >= d(x,z)
-%pseudo: relaxes identity of indiscernibles to: d(x,x) = 0, meaning that there might be y not equal to x such that d(x,y) = 0
-%Mahalanobis distance is pseudo-metric if $M$ is positive semi-definite and metric if $M$ is positive definite
-
-%Linear metric, can be rewritten as linear transformation of the input space, comes in handy for nearest neighbor retrieval since we can still use Euclidean distance between transformed points
-
-%rewrite $M = L^T L$, learn L, M is always PSD and the metric thus a pseudo metric, L is a linear transformation of the feature space such that Euclidean norm of transformed difference vector (or difference between transformed vectors) corresponds to $d_M$
-
-%\begin{equation}
-%d_{M}(\vec{x},\vec{y}) = ||\mat{L}(\vec{x}_{i}-\vec{y}_{i})||
-%\label{eq:mahalanobis_transformation}
-%\end{equation}
-
-%$||\mat{L}(\vec{x}_{i}-\vec{y}_{i})|| = ||\mat{L}\vec{x}_{i}-\mat{L}\vec{y}_{i}||$
-
-
-%\subsection{Learning from discrete distinctions}
-
-%suppose we have a problem with input space $\mathcal{X} \subseteq \mathbb{R}^n$ and as output discrete class labels $\mathcal{Y} = {1, 2, ..., C}$. Then we want distance to be small iff labels are the same. kNN example, clustering example
-
-%training set: subsets or pairs of objects which are similar. Many methods also use dissimilarity information: subsets or pairs of objects which are dissimiilar.
-
-%try to make within-class variance small, difference between different classes large
-
-%very applicable for classification tasks, but not so much for non-binary task such as those with a structured loss function, have to select some arbitrary cut-off for similarity or dissimilarity
-
-%\subsection{Learning from rankings}
-
-%training set: ranking or triples of objects for which one is closer to the other
-
-%try to satisfy as many of these constraints as possible
-
-
-%\subsection{Learning from real-valued distances}
-
-%suppose a similarity measure which gives a real valued measure of similarity between two objects, inverted (dissimilarity measure) gives us a distance function or metric that we want to learn,
-
-
 %training set: pairs of objects with given distance (not similarity since we learn a distance function)
-
-
 %$\mathcal{X}_{\textsc{train}} \subseteq \mathcal{X}$
-
-% training triplets $\mathcal{T} = \{(\vec{x}_i, \vec{x}_j, d_{ij})\}$ with input vectors $\vec{x}_i, \vec{x}_j \in \mathcal{X}_{\textsc{train}}$ and their pairwise distances $d_{ij} \in \mathbb{R}_{0}^{+}$.
-
+% training tuples $\mathcal{T} = \{(\vec{x}_i, \vec{x}_j, d_{ij})\}$ with input vectors $\vec{x}_i, \vec{x}_j \in \mathcal{X}_{\textsc{train}}$ and their pairwise distances $d_{ij} \in \mathbb{R}_{0}^{+}$.
+%Suppose we have a problem in which we are interested in the similarity between input examples. These input examples are represented through a set of real-valued attributes, thus each example corresponds to a vector  $\vec{x} \in \mathbb{R}^n$ in the representation space. We now want to measure the similarity between two input vectors $\vec{x}_i$ and $\vec{x}_j$. Without any prior knowledge we could measure the Euclidean distance between 
+% compare $d(\vec{x}_i, \vec{x}_j) = ||\vec{x}_i - \vec{x}_j||_2$
+%learn a distance metric specific to the problem instead of relying on 'default' metrics (e.g. Euclidean), same data set and features but difffernt task
 %learn M by minimizing SSE over this training set
-
 %\begin{equation}
 %M = \argmin_{M} \sum_{(\vec{x}_i, \vec{x}_j, d_{ij}) \in \mathcal{T}} \left(d_{ij} -  \sqrt{(\vec{x}_{i}-\vec{x}_{j})^{T} M (\vec{x}_{i}-\vec{x}_{j})}\right)^2
 %\label{eq:min_sse_M}
 %\end{equation}
-
-
 %rewrite $M = L^T L$, learn L, M is always PSD and the metric thus a pseudo metric, L is a linear transformation of the feature space such that Euclidean norm of transformed difference vector (or difference between transformed vectors) corresponds to $d_M$
-
 %\begin{equation}
 %L = \argmin_{L} \sum_{(\vec{x}_i, \vec{x}_j, d_{ij}) \in \mathcal{T}} \left( d_{ij} -  ||L(\vec{x}_{i}-\vec{x}_{j})|| \right)^2
 %\label{eq:min_sse_L}
 %\end{equation}
-
 %\begin{equation}
 %L = \argmin_{L} \sum_{(\vec{x}_i, \vec{x}_j, d_{ij}) \in \mathcal{T}} \left( d_{ij}^2 - L\delta_{ij} \cdot L\delta_{ij} \right)^2
 %\label{eq:min_sse_L}
 %\end{equation}
-
-%\subsection{Alternative optimization problems}
-
-
-
-%\subsection{Connection to dimensionality reduction techniques}
-
-
-
-
 
 
 
