@@ -207,7 +207,8 @@ Metric learning method generally don't do this, however MDS and visualization me
 %try to satisfy as many of these constraints as possible
 
 
-
+\subsection{SGD}
+ \cite{rakhlin2012making} ASGD with suffix averaging is O(1/T) \cite{bottou2010large} ASGD or SGDQN is good for large scale problems \cite{bottou2008tradeoffs} SGD algorithms work surprisingly well in large scale learning \cite{xu2011towards} ASGD with specific parameters is optimal
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -247,7 +248,7 @@ This allows us to apply the metric regression method as a linear transformation 
 %What are the details of the method?
 %define target distance as some function which we can sample, minimize empirical risk over this training data, global vs local sampling, training data, pairs and real-valued distance, input as pair differences, minimize using gradient descent, assuming that it is easy to sample this is large scale learning because number of pairwise distances is exponential in number of points, we use SGD, Frobenius norm regularization, many parameters: exponential in number of features, hence regularization,
 
-A pairwise distance constraint is a tuple $(\vec{x}_i, \vec{x}_j, d_{ij})$ consisting of a pair of points in the input space $\vec{x}_i, \vec{x}_j \in \mathcal{X}$ and their target distance $d_{ij} \in \mathbb{R}_0^+$. %How to get these constraints, sampling
+A pairwise distance constraint is a tuple $(\vec{x}_i, \vec{x}_j, d_{ij})$ consisting of a pair of points in the input space $\vec{x}_i, \vec{x}_j \in \mathcal{X}$ and their target distance $d_{ij} \in \mathbb{R}_0^+$. \todo{How to get these constraints, sampling globally vs locally.}
 
 Given a training set $\mathcal{D}$ of pairwise distance constraints we want to learn a linear transformation $\mat{L}$ that makes distances in the transformed input space predictive of target distance. We define the loss between predicted distance and target distance as squared error, thus our empirical risk corresponds to the mean squared error over the training set:
 \begin{equation}
@@ -258,16 +259,16 @@ We fit the parameters of the transformation matrix $\mat{L}$ to the training set
 
 \subsubsection{Optimization by stochastic gradient descent}
 
-In order to fit the transformation matrix to the training set we use \acf{SGD}. Gradient descent is an iterative first order optimization algorithm that finds a local minimum of an error function. On each iteration it changes the parameters by a small step in the direction opposite to the gradient of the error function with respect to the parameters. Since the negative gradient is the direction of steepest descent, each step leads to a reduction in error. When the error function is defined as a sum of individual errors on examples in a training set, \ac{SGD} is a stochastic version of gradient descent where at each step the gradient is computed on the error of a single example. This does not require a summation over all examples in the training set for each update, which is beneficial when the training set is large. \todo{Highlight benefits of SGD. Discuss small-scale vs large scale learning, relevant papers of Bottou and Xu. Probably move this to background and have a SGD subsection.}
+In order to fit the transformation matrix to the training set we use \acf{SGD}. Gradient descent is an iterative first order optimization algorithm that finds a local minimum of an error function. On each iteration it changes the parameters by a small step in the direction opposite to the gradient of the error function with respect to the parameters. Since the negative gradient is the direction of steepest descent, each step leads to a reduction in error. When the error function is defined as a sum of individual errors on examples in a training set, \ac{SGD} is a stochastic version of gradient descent where at each step the gradient is computed on the error of a single example. This does not require a summation over all examples in the training set for each update, which is beneficial when the training set is large. \todo{Highlight benefits of SGD. Discuss small-scale vs large scale learning, relevant papers of Bottou and Xu. Probably move this to background and have a SGD subsection. Should also discuss ASGD and convergence speed.}
 
 In order to apply \ac{SGD} to our learning problem we define an error function which has the same minimum as (\ref{eq:mse}) but is easier to differentiate and optimize because of its form:
 \begin{equation}
-E_{\mathcal{D}}(\mat{L}) =  \frac{1}{4} \sum_{(i,j) \in \mathcal{D}} \left ( d_{ij}^2 - ||\mat{L}(\vec{x}_i - \vec{x}_j)||_2^2 \right )^2.
+E_{\mathcal{D}}(\mat{L}) =  \sum_{(i,j) \in \mathcal{D}}  \frac{1}{4} \left ( d_{ij}^2 - ||\mat{L}(\vec{x}_i - \vec{x}_j)||_2^2 \right )^2.
 \label{eq:opt_target}
 \end{equation}
 Here $\vec{x}_i - \vec{x}_j$ is the pairwise difference between two vectors in the input space $\mathcal{X}$ and $d_{ij}^2$ is the squared target distance for this pair of input vectors. $||\mat{L}(\vec{x}_i - \vec{x}_j)||_2^2$ is the squared Euclidean distance in the transformed space which is efficient to compute as the inner product of the transformed difference vector. The constant vector $\frac{1}{4}$ is there only for convenience in differentiation. 
 
-The corresponding gradient of the error $E_{ij}$ on a single pairwise distance constraint $(i,j) \in \mathcal{D}$ is then given by:
+Interpreting the optimization objective as $E_{\mathcal{D}} = \sum_{(i,j)\in\mathcal{D}} E_{ij}$ the corresponding gradient of the error $E_{ij}$ on a single pairwise distance constraint $(i,j) \in \mathcal{D}$ is given by:
 \begin{equation}
 \nabla E_{ij}(\mat{L})  = - \left ( d_{ij}^2 - ||\mat{L}(\vec{x}_i - \vec{x}_j)||_2^2 \right) \mat{L} \mat{C}_{ij},
 \label{eq:opt_grad}
@@ -286,28 +287,51 @@ Here $t$ is the iteration number, $\nabla E_{ij}(\mat{L})$ is the gradient compu
 \end{equation}
 For SGD without regularization we set $a = 1$ and we leave the parameter $c$ as a hyper parameter that needs to be tuned. Following \cite{bottou2008tradeoffs} we set $\eta_0$ by optimizing it on the first thousand points in the dataset and selecting the value that reduces loss the most.
 
+\subsubsection{Relative error}
+
+The squared error measure in (\ref{eq:mse}) assigns greater importance to larger pairwise differences. This might not be optimal for nearest neighbor applications since the points with smallest pairwise difference are most important for classification. \todo{Mention stress functions which have parameter for this.} In order to put equal weight on different length difference vectors, we define a squared relative error as loss function:
+\begin{equation}
+\text{MSRE}(\mat{L}) = \frac{1}{|\mathcal{D}|}\sum_{(i,j) \in \mathcal{D}} \left ( \frac{||\mat{L} (\vec{x}_i - \vec{x}_j)||}{d_{ij}} - 1 \right)^2.
+\label{eq:msre}
+\end{equation}
+Analogous to (\ref{eq:opt_target}) we create an optimization objective $R_{\mathcal{D}}(\mat{L}) = \sum_{(i,j) \in \mathcal{D}} R_{ij}$ which leads to the following gradient $\nabla R_{ij}(\mat{L})$ for the squared relative error on the pairwise distance constraint $(i,j) \in \mathcal{D}$:\todo{Need to handle asymptote at $d_{ij} \rightarrow 0$.}
+\begin{equation}
+\nabla R_{ij}(\mat{L})  =  \left ( \frac{||\mat{L}(\vec{x}_i - \vec{x}_j)||_2^2}{d_{ij}^2} - 1 \right) \frac{1}{d_{ij}^2} \mat{L} \mat{C}_{ij},
+\label{eq:relative_grad}
+\end{equation}
+In contrast to (\ref{eq:opt_grad}) this scales the residual error and gradient by the magnitude of the squared target distance $d_{ij}^2$. Using relative error leads to larger steps for updates computed on small distances, making nearest neighbors more important in the optimization.
+
+
+\subsubsection{Regularization}
+
+%learn on training set, distances are sampled, might contain noise, might not be entirely in line with real distribution, might contain sampling bias especially for local sampling, hence possibility for overfitting, many parameters ($D^2$ for a $D$-dimensional input space) 
+The target distances in the training set need not be a perfect representation of the actual distribution of distances. The sampling process might be noisy and the samples might not be independent or identically distributed. Furthermore, the number of parameters that we fit is large: $D^2$ for a $D$-dimensional input space. This flexibility in combination with imperfect training data might lead to \emph{overfitting}. The optimization continues to decrease error on the training data, but error on unseen data (e.g. a validation set) stops decreasing and starts increasing as the learned transformation becomes more specific to the irregularities of the training data and less generally applicable.
+
+One way to prevent overfitting is by early stopping, for example by monitoring the error on a separate validation set and stopping once this error no longer decreases. Another way that we describe here is by incorporating a regularization penalty into the objective function that we optimize. For this we define a cost function that penalizes large transformations:
+\begin{equation}
+C_{\mathcal{D}}(\mat{L}) =  E_{\mathcal{D}}(\mat{L}) + \lambda ||\mat{L}||_\textsc{f}^2.
+\label{eq:structured_risk}
+\end{equation}
+Here $C_{\mathcal{D}}(\mat{L})$ is the cost function that we will minimize, $E_{\mathcal{D}}(\mat{L})$ is the error on the data, $ ||\mat{L}||_\textsc{f}^2$ signifying the Frobenius norm of $\mat{L}$ is the regularization penalty and $\lambda \in \mathbb{R}_0^+$ is a parameter that determines the strength of the regularization. The gradient for the update then becomes:
+\begin{equation}
+\nabla C_{ij}(\mat{L}) =  E_{ij}(\mat{L}) + \lambda 2\mat{L}.
+\label{eq:structured_grad}
+\end{equation}
+
 
 \subsubsection{Mini-batch optimization}
+
+\todo{This should also be in the SGD background section, making it just a parameter which we'll discuss further in the tuning section.}
 
 \begin{equation}
 \mat{L} \leftarrow \mat{L} - \eta_{t} \frac{1}{|\mathcal{B}_t|} \sum_{(i,j) \in \mathcal{B}_t} \nabla E_{ij}(\mat{L})
 \label{eq:update}
 \end{equation}
 
+\bibliographystyle{plain}
+\bibliography{Thesis}
 
-\subsubsection{Regularization}
 
-\begin{equation}
-C(\mat{L}) =  E(\mat{L}) + \lambda ||\mat{L}||_\textsc{f}^2
-\label{eq:opt_target}
-\end{equation}
-
-\subsubsection{Relative error}
-
-\begin{equation}
-\text{MSRE}(\mat{L}) = \frac{1}{|\mathcal{D}|}\sum_{(i,j) \in \mathcal{D}} \left ( \frac{||\mat{L} (\vec{x}_i - \vec{x}_j)||}{d_{ij}} - 1 \right)^2
-\label{eq:msre}
-\end{equation}
 
 
 %suppose a similarity measure which gives a real valued measure of similarity between two objects, inverted (dissimilarity measure) gives us a distance function or metric that we want to learn,
