@@ -40,6 +40,7 @@
 \acrodef{kNN}[k-NN]{k-nearest neighbors}
 \acrodef{HCRF}{hierarchical conditional random field}
 \acrodef{SGD}{stochastic gradient descent}
+\acrodef{ITML}{information-theoretic metric learning}
 
 %\title{Metric alignment}
 %\title{Aligning metric to a distance function in an unknown space.}
@@ -142,10 +143,16 @@ Now suppose we would like to apply \acf{kNN} classification to such a structured
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagebreak
-\section{Background}
+\section{Background and related work}
 
-\subsection{Metric Learning}
+
+\subsection{Unsupervised metric learning}
+
+
+\subsection{Supervised metric learning}
 \label{sec:metric_learning}
+
+
 
 Many machine learning methods depend on pairwise comparisons between object representations. 
 
@@ -155,7 +162,10 @@ The aim of metric learning methods is to learn a distance function helpful to th
 
 %local vs global, supervised vs unsupervised, linear vs non-linear
 
+
+
 \subsubsection{Notation and problem formulation}
+
 
 The problem of metric learning is to learn the parameters for a distance function from training examples.
 
@@ -188,6 +198,8 @@ structured prediction, predict complex outputs, sequences or trees, combinatoria
 %$||\mat{L}(\vec{x}_{i}-\vec{y}_{i})|| = ||\mat{L}\vec{x}_{i}-\mat{L}\vec{y}_{i}||$
 
 
+
+
 \subsubsection{Learning from equivalence constraints}
 
 Suppose we have a problem with discrete labels for the examples, for classification or clustering we would like distances between examples to be small if their labels are the same and large otherwise.
@@ -199,9 +211,15 @@ Suppose we have a problem with discrete labels for the examples, for classificat
 %try to make within-class variance small, difference between different classes large
 %very applicable for classification tasks, but not so much for non-binary task such as those with a structured loss function, have to select some arbitrary cut-off for similarity or dissimilarity
 
+The \acf{ITML} method \cite{davis2007information} considers similarity constraints of the form $d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{j}) \leq u$ and dissimilarity constraints of the form $d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{k}) \geq \ell$, where $u$ and $\ell$ are numeric upper and lower bounds on the distance between similar points pairs $\vec{x}_{i}, \vec{x}_{j}$ and dissimilar point pairs $\vec{x}_{i}, \vec{x}_{k}$. A matrix $\mat{M}$ is learned that satisfies these constraints while minimizing LogDet divergence between an input matrix $\mat{M}_0$ and $\mat{M}$.
+
+
+$d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{j}) + 1 \leq d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{k})$
 \subsubsection{Learning from ranking constraints}
 
 Suppose we have a problem without discrete labels but in which we try to find the most similar examples, we would like the distance to a similar example to be smaller than the distance to a less similar example.
+
+$d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{j}) < d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{k})$
 
 \subsubsection{Learning from distance constraints}
 
