@@ -37,7 +37,7 @@
 \acrodef{MDS}{multidimensional scaling}
 \acrodef{MSE}{mean squared error}
 \acrodef{LMNN}{large margin nearest neighbor}
-\acrodef{kNN}[k-NN]{k-nearest neighbors}
+\acrodef{kNN}[$k$NN]{$k$-nearest neighbors}
 \acrodef{HCRF}{hierarchical conditional random field}
 \acrodef{SGD}{stochastic gradient descent}
 \acrodef{ITML}{information-theoretic metric learning}
@@ -65,76 +65,21 @@
 
 \pagebreak
 
-
-
-
 \tableofcontents
 
 \pagebreak
 
 
+%Boxes to write:
+% kNN classification
+% k-means clustering
+% structured prediction problems (or)
+% loss functions used in machine learning
+% image segmentation problems
+% zero-shot learning / attribute based learning
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% INTRODUCTION
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\section{Introduction} 
-
-%similarity between objects, distance function, applications (clustering, similarity search [product recommendation, document search], non-parametric methods based on distance or local density [kernel density estimation, k-nearest neighbor classification], visual identification)
-Similarity between a pair of objects can be expressed as a distance function. A distance function maps representations of two objects to a positive real number. Choosing the correct distance function is important for many learning problems such as document search (finding documents most similar to the user query) or product recommendation (finding products bought by similar users or that are similar to the purchased product). It is also the defining factor in the effectiveness of unsupervised clustering techniques and non-parametric supervised learning algorithms such as kernel density estimation and k-nearest neighbor classification. This thesis is about automatically selecting the best distance function for a specific problem.
-
-%representation of objects, feature space, distance in this space different from similarity, explain problem with clustering: picking different features or scaling will lead to different clusters which do not all correspond to our idea of similarity, common to use Euclidean or Hamming distance depending on the feature vector
-A common approach %in the absence of prior knowledge
- is to represent objects as points in some high-dimensional feature space and to measure similarity by Euclidean distance in this space. This requires us to carefully choose a feature representation such that Euclidean distance corresponds to our notion of similarity. \todo{Evaluate  against feature selection?} However, in most cases the dataset and features are predetermined and the features  measure  basic attributes of the objects instead of being chosen specifically to satisfy a similarity measure. Furthermore, the similarity measure is specific to the task. For example, we would want to use a different similarity measure for face identification than for age verification even though both tasks have images of faces as input.
-
-%metric learning: learn a distance function between object representations that corresponds to actual similarity, metric, parametric metrics, metric transform, Mahalanobis distance,  using discrete similarity for training or a similarity ranking,
-A more advanced approach is to use metric learning to select a distance function. Metric learning algorithms use a parameterized distance function and automatically select the parameters that best correspond to a given notion of similarity. Learning the parameters requires a set of training data generated with the target metric. \todo{Define target metric.} However, most of these methods have been developed in the context of discrete classification problems with an unknown target metric. To still be able to learn a metric they use pairs of objects for which is given whether they belong to the same class or not as training data and learn a metric which best separates those classes. \todo{What does this solve and what doesn't it solve?}
-
-%what if we have exact similarity scores represented as real numbers, but not discrete classes, e.g. structured problem, metric alignment, learn a metric that satisfies real similarity score
-Because of the way such metric learning methods learn their parameters, they are not applicable to problems in which training examples cannot be assigned to a single class. For example if class inclusion is on a continuous scale or in the case of structured problems where the number of possible assignments is combinatorially large. However, in many of such problems there is a natural way of defining similarity between pairs of training example as a real number. \todo{This thesis presents ...}
-
-%dimension reduction and visualization methods, (multi-dimensional scaling, isomap, LLE, SNE), mapping/embedding retaining pairwise distances, finding coordinates in some space which satisfy a similarity score
-\todo{MDS etc}
-
-
-Student network example: suppose that we have a set of students and for each pair we record how much time those student spend interacting with each other, suppose further that there are two cliques in the class (jocks and nerds). Visualization techniques (such as MDS, Isomap, SNE) would be able to give us a map in which the distances between students would correspond to the interaction times. We could probably recognize the two groups in this map. But let's say a new student joins and we want to know where he will fit in this map. Since we don't have the interaction times, we will not be able to create a new map with him in it. Suppose then that we give each student a survey asking how much time they spend on which recreational activities. Metric learning methods can then learn a metric based on the survey answers that would allow us to predict the interaction distance between the new student and the old students. But these methods mostly require training data in which we specify which of the old students are in the same group. What if the teachers can't distinguish between the groups, or the groups are on a continuous spectrum where most students are only slightly more nerd than jock or visa versa? Metric alignment allows us to learn a metric on the survey results (like metric learning) while using the interaction time as training data (like visualization techniques).
-
-contributions: 
-1. describes and evaluates method using regression to learn a metric from exact similarity scores 
-2. show that it improves performance of k-nearest neighbors on a real structured-prediction problem
-
-%proposed method should be used when you need a distance function measuring similarity or a feature space in which Euclidean distances correspond to similarity between objects for which it is difficult to decide whether they belong to the same discrete class and the similarity you want to measure is known for at least a subset of the training set but not for new examples but training and test objects can be represented by the same set of features.
-The proposed method should be used when you have some notion of similarity which is measurable for (at least a subset of) the training set, but not for unseen objects and you would like to have a feature space or distance function in which pairwise distances correspond to this notion of similarity. The similarity measure should be expressible as a distance $\in \mathbb{R}^{+}$ (positive real number or zero). If the precise similarity is not known but a discrete metric can be established (e.g. objects being labeled the same or different), then discrete metric learning can be used instead of the proposed method. If we know the pairwise similarity for all examples, but we do not have a representation for the objects, data visualization techniques such as \ac{MDS} can be used to find a n-dimensional mapping for the objects in which distances between objects correspond to pairwise similarity.
-
-
-
-%%%%%%%
-% Below taken from draft section 4
-\todo{Integrate the 3 paragraphs below.}
-
-%metric alignment, continuous distance functions, unknown or unavailable during execution, transforms feature space, feature distances are predictive of training distance
-The metric alignment method described in section \ref{metric_regression} is applicable to problems characterized by a continuous distance function. Given samples of pairwise distances, metric alignment learns a transformation of the feature space which makes Euclidean distances between feature vectors predictive of the sampled distance function. This is helpful when the exact formulation of the target distance function is unknown or unavailable during execution. For example, when samples of the target distance consists of pairwise similarities judged by a human expert who can not give you an exact formula for his judging process. Or another example, when the target distance is defined on the attributes that should be predicted. In this case we would be able to calculate exact distances during training, but not during execution.
-
-%classification problems with continuous loss function, nearest neighbor methods, make distance predictive of loss for predicting neighbor label
-A common class of such problems are structured prediction problems with continuous loss functions. Structured prediction problems are classification problems where the goal is not to predict some single output label for each example, but the goal is to predict some element of a structured output space $\vec{y} \in \mathcal{Y}$ where $\vec{y}$ is some complex element, for example a sequence or a tree of labels. Because of the complexity of the output elements, the 0-1 loss measure $L(\hat{y}, y) = \left[\hat{y} \ne y\right]$ that is commonly used in classification is no longer applicable since it treats a sequence which differs in only one element the same as a sequence which differs in all elements. Hence, such problems define a continuous loss function $L: \mathcal{Y} \times \mathcal{Y} \rightarrow \mathbb{R}$, for example Hamming distance for sequences of labels.
-
-Now suppose we would like to apply \acf{kNN} classification to such a structured problem. In \ac{kNN} classification we predict an output by looking at the output corresponding to the $k$ closest training examples. Suppose we set $k = 1$ and we simply predict the output we have observed for the closest training example. This approach performs best when the closest example is the example with the lowest loss relative to the ground truth label. However, we do not have this loss available during execution to rank neighbors, thus `closest' is defined here as smallest distance in feature space. Hence, if we train our metric to be predictive of the pairwise loss, we might increase our performance.
+\include{Introduction}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -169,7 +114,7 @@ The aim of metric learning methods is to learn a distance function helpful to th
 
 The problem of metric learning is to learn the parameters for a distance function from training examples.
 
-A distance function, or metric, is a function mapping from a pair of coordinate vectors to a scalar, having certain properties.
+A metric or distance function is a function $d: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}^{+}$, having metric or semi-metric properties (look these up).
 
 The Mahalanobis metric is a linear parametric distance function and is most commonly used in metric learning.
 
@@ -196,8 +141,6 @@ structured prediction, predict complex outputs, sequences or trees, combinatoria
 %\label{eq:mahalanobis_transformation}
 %\end{equation}
 %$||\mat{L}(\vec{x}_{i}-\vec{y}_{i})|| = ||\mat{L}\vec{x}_{i}-\mat{L}\vec{y}_{i}||$
-
-
 
 
 \subsubsection{Learning from equivalence constraints}
