@@ -11,141 +11,105 @@
 
 %Constraint types
 
-%Optimization, solving in A vs in L, constrained (A PSD) vs unconstrained
+%Optimization, solving in A vs in G, constrained (A PSD) vs unconstrained
 
 %Regularization
 
 %Fixed rank learning
 
 
-\section*{Exploratory draft 1}
-
-Metric learning methods learn a distance function in a supervised manner. Supervised learning requires a training set of data points and some sort of side information about those points which can inform the learning process. In practice, this side information comes in the form of class labels for each point in classification problems, relative distance constraints in ranking problems, and the correct structured output in structured prediction problems. This side information is often referred to as the ground-truth.
+Metric learning methods learn a distance function specific to a task through supervised learning. Supervised learning requires a training set containing data points and some sort of side information about those points which informs the learning process. In practice, this side information comes in the form of class labels for each point in classification problems or the correct structured output in structured prediction problems. This side information is often referred to as the ground-truth.
 
 Training points are assumed to be $d$-dimensional real-valued feature vectors in a Euclidean feature space $\mathcal{X} = \mathbb{R}^d$. Let $\mat{X} = \left[ \vec{x}_1, \vec{x}_2, ..., \vec{x}_n \right]$ be the matrix of all the training points, with each column being a single feature vector $\vec{x}_i \in \mathcal{X}$. Each element of a training vector corresponds to a single feature value. Distances between points in the feature space can be measured by the Euclidean distance $\|\vec{x}_i - \vec{x}_j\|_2 = \sqrt{(\vec{x}_i - \vec{x}_j)^T(\vec{x}_i - \vec{x}_j)}$, although in practice the square root is often dropped because the squared distance is easier to compute.
 
 
 
-\subsection{Parametric distance functions}
+\subsection{Linear distance functions}
 
-The goal of metric learning is to learn a distance function in the feature space. The learned distance function is a function $d: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}^{+}$ having metric or pseudo-metric properties:
+The goal of metric learning is to learn a distance function in the feature space. A distance function, or metric, is a function $d: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}^{+}$ having the following properties:
 \begin{subequations}
 \begin{align}
         d(\vec{x}_i, \vec{x}_j) & \geq 0 &  \text{non-negativity}, \label{eq:non-negativity}\\
-        d(\vec{x}_i, \vec{x}_i) & = 0 &  \text{identity}, \label{eq:identity}\\
+        d(\vec{x}_i, \vec{x}_j) & = 0 \leftrightarrow i = j & \text{identity of indiscernibles}, \label{eq:identity_of_indiscernibles} \\
         d(\vec{x}_i, \vec{x}_j) & = d(\vec{x}_j, \vec{x}_i) &  \text{symmetry}, \label{eq:symmetry}\\
-        d(\vec{x}_i, \vec{x}_k) & \leq d(\vec{x}_i, \vec{x}_j) + d(\vec{x}_j, \vec{x}_k) &  \text{triangle unequality}. \label{eq:triangle_unequality}
+        d(\vec{x}_i, \vec{x}_k) & \leq d(\vec{x}_i, \vec{x}_j) + d(\vec{x}_j, \vec{x}_k) &  \text{triangle inequality}. \label{eq:triangle_unequality}
 \end{align}
 \end{subequations}
-The properties of a metric are the same except that (\ref{eq:identity}) is replaced by identity of indiscernibles: $d(\vec{x}_i, \vec{x}_j) = 0 \xleftrightarrow[]{\text{\tiny{iff}}} i = j$. The distance function is often parameterized by a $d \times d$ matrix $\mat{A}$ in the following way:
+In addition, a distance function is called a pseudo-metric if it conforms to all these conditions except (\ref{eq:identity_of_indiscernibles}) which is replaced by $d(\vec{x}_i, \vec{x}_i) = 0$, meaning that points still have zero distance to themselves but might also have zero distance to other points. Metric learning is often concerned with learning a pseudo-metric, e.g. in classification problems we would not necessarily want to make a distinction between objects of the same class, hence the distance between them is not constrained to be larger than zero.
+
+Most metric learning methods learn a linear distance function. A linear distance function is limited to rotating and scaling the dimensions along which the distance is measured. Because of this it can also be computed by first applying a linear transformation to the input space and then measuring the Euclidean distance in the transformed space. This has the benefit that algorithms that rely on a Euclidean distance, such as nearest-neighbor look up with spatial indexing techniques, can be used off-the-shelf.
+
+The distance function is often parameterized as a squared metric with a $d \times d$ parameter matrix $\mat{A}$:
 \begin{equation}
-d_{\mat{A}}(\vec{x}_i, \vec{x}_j) = \sqrt{(\vec{x}_i - \vec{x}_j)^T\mat{A}(\vec{x}_i - \vec{x}_j)}.
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) = (\vec{x}_i - \vec{x}_j)^T\mat{A}(\vec{x}_i - \vec{x}_j).
 \end{equation}
-In the metric learning literature this form of distance function is often called a Mahalanobis distance, although this term was originally used for a specific instance of this distance, see the text box. If $\mat{A}$ is positive definite then $d_{\mat{A}}$ is a metric and if $\mat{A}$ is positive semi-definite then $d_{\mat{A}}$ is a pseudo-metric. If $\mat{A}$ equals the identity matrix then $d_{\mat{A}}$ is simply the Euclidean distance.
+In the metric learning literature this form of distance function is often called a Mahalanobis distance, although this term was originally used for a specific instance of this distance, see Text Box \ref{tb:mahalanobis}. If $\mat{A}$ is positive definite then $d_{\mat{A}}$ is a metric and if $\mat{A}$ is positive semi-definite then $d_{\mat{A}}$ is a pseudo-metric. If $\mat{A}$ equals the identity matrix then $d_{\mat{A}}$ is simply the Euclidean distance.
+
+\begin{textbox}
+The Mahalanobis distance was introduced as a metric to measure distance between random vectors from the same distribution. \cite{mahalanobis1936generalised} The Mahalanobis distance is defined as:
+\begin{equation}
+d_{\textsc{Mahalanobis}}(\vec{x}_i, \vec{x}_j) = \sqrt{(\vec{x}_i - \vec{x}_j)^T\Sigma^{-1}(\vec{x}_i - \vec{x}_j)},
+\end{equation}
+where $\Sigma$ is the covariance of the distribution, or an estimate thereof. This metric is especially helpful for calculating the distance of a random vector to the mean of the distribution, since the metric ensures that for a Gaussian distribution the iso-surface corresponds to a constant probability of being generated by the distribution. Computing Mahalanobis distance between vectors is equivalent to calculating the Euclidean distance between whitened vectors. This can be easily seen by realizing that whitening data causes the covariance to be equal to the identity matrix, thus $\Sigma^{-1} = \mat{I}^{-1} = \mat{I}$, making the calculation for the Mahalanobis distance to be equal to Euclidean distance.
+\caption{}
+\label{tb:mahalanobis}
+\end{textbox}
+
+Because a Mahalanobis metric is a linear metric, it can be interpreted as the squared Euclidean distance in a linear transformation of the feature space. This is done by substituting $\mat{A} = \mat{G}^T\mat{G}$ and transforming points in the feature space by $\mat{G}$ in the following way:
+\begin{align}
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) & = (\vec{x}_i - \vec{x}_j)^T\mat{A}(\vec{x}_i - \vec{x}_j) \nonumber \\
+& = (\vec{x}_i - \vec{x}_j)^T\mat{G}^T\mat{G}(\vec{x}_i - \vec{x}_j) \nonumber \\
+& = \left(\mat{G}(\vec{x}_i - \vec{x}_j)\right)^T \mat{G}(\vec{x}_i - \vec{x}_j) \nonumber \\
+& = (\mat{G}\vec{x}_i - \mat{G}\vec{x}_j)^T(\mat{G}\vec{x}_i - \mat{G}\vec{x}_j) \nonumber \\
+& = \|\mat{G}\vec{x}_i - \mat{G}\vec{x}_j\|_2^2
+\end{align}
+Here $\mat{G}$ is a $r \times d$ matrix with $r$ being the rank of $\mat{A}$. Therefore, if the distance matrix $\mat{A}$ is not full-rank, transforming the points in feature space corresponds to projecting onto a lower-dimensional space $\mathbb{R}^r$. This can be useful for high-dimensional problems since it has the same effects as dimension reduction. Reducing the dimensionality of the problem gives a more compact feature representation and distance calculations are less expensive. Furthermore, high-dimensional spaces tend to be sparse as volume increases exponentially with the number of dimensions, often referred to as the curse of dimensionality. Hence, several metric learning methods try to learn low-rank metrics.
+
+We can graphically represent a linear distance function as an ellipsoid in the original space. The ellipse then denotes the iso-contour of equal distance from the center of the ellipse. An example can be seen in Figure \ref{fig:approach_overview}. The axes of the ellipsoid correspond to the eigenvectors of the matrix $\mat{A}$ and the length of the axis should be equal to the corresponding eigenvalues to show the iso-line where the distance from the center of the ellipse is one. Hence, the Euclidean distance shown in the left of Figure \ref{fig:approach_overview} is a circle with radius one since the Euclidean distance corresponds to $\mat{A} = \mat{I}$. 
 
 
 
+\subsection{Constraints}
+
+Metric learning methods require supervision in the form of constraints on the learned distance. When objects can easily be judged to be either similar or dissimilar, these can be given as a set of similarity/dissimilarity constraints. This is given as a set $\mathcal{S}$ of pairs $(i, j)$ that are similar and a set $\mathcal{D}$ of pairs that are dissimilar. These constraints have the following form:
+\begin{subequations}
+\begin{align}
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &\leq \ell & (i, j) \in \mathcal{S}, \\
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &\geq u & (i, j) \in \mathcal{D}.
+\end{align}
+\end{subequations}
+They constrain the distances between similar pairs to be lower than some lower bound $\ell$ and distances between dissimilar pairs to be larger than some upper bound $u$. Suitable bounds have to be chosen for each problem. This is generally done by computing the 5th and 95th percentiles of the sampled distribution of distances between random pairs and equating these to $\ell$ and $u$ respectively.
+
+Another popular choice for distance constraints is relative constraints. Relative constraints constrain one distance to be larger or smaller than another distance. Relative constraints are defined as a set $\mathcal{R}$ of triplets of points $(i,j,k)$ and have the following form:
+\begin{equation}
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) < d_{\mat{A}}(\vec{x}_i, \vec{x}_k).
+\end{equation}
+Thus for each triplet $(i,j,k) \in \mathcal{R}$ the distance between points $\vec{x}_i$ and $\vec{x}_j$ should be smaller than the distance between points $\vec{x}_i$ and $\vec{x}_k$.
+
+Distance constraints are generated from the ground truth in the training set. For small problems with a small training set we can take a comprehensive approach and enumerate all possible pairs or triplets. However, for most real-world problems the training set has to be large and enumerating all pairs would be intractable. Therefore we have to resort to taking a sample of pairs from the training set. There are two main approaches to this sampling: global sampling and local sampling. Global sampling is the most general and corresponds to simply picking random pairs or triplets from the training set. This gives the most representative sample of distances in the feature space. However, many methods that use distance function in feature space are only concerned with pairs of points that have small pairwise distances. For example, \ac{kNN} only looks at the nearest neighbors of a point and any points that have a larger distance are ignored. In this case we can also restrict our samples to only consist of pairs or triplets that are contained in a local neighborhood: local sampling. One way to do this, which is specifically useful for \ac{kNN} applications is to sample a random point and then sample one or two random points amongst the nearest neighbors of this point in order to form a pair or triplet. Since the nearest neighbors depend on the distance function that is used they may change during the learning process. Therefore, we might want to iterate this sampling during the learning process, which we will refer to as iterative local sampling.
 
 
 
+\subsection{Optimization and regularization}
+
+Besides the choice of
+
+associate cost function with constraints, optimize this function. metric learning methods mainly differ in how they formulate and optimize the cost functions
+
+optionally add regularizer to avoid overfitting or force low rank learning.
+
+choice between optimizing A or G, in A need to constrain A to be PSD e.g. project by setting negative eigenvalues to 0 (computationally expensive)
 
 
 
+\subsection{Other approaches}
+
+local distance metrics
+
+non-linear distance metrics
 
 
 
-
-
-
-
-
-\section*{Old snippets}
-
-
-\subsection{Supervised metric learning}
-\label{sec:metric_learning}
-
-
-
-Many machine learning methods depend on pairwise comparisons between object representations. 
-
-Euclidean distance does not always correspond with semantic distance or similarity.
-
-The aim of metric learning methods is to learn a distance function helpful to the problem.
-
-%local vs global, supervised vs unsupervised, linear vs non-linear
-
-
-
-\subsubsection{Notation and problem formulation}
-
-
-The problem of metric learning is to learn the parameters for a distance function from training examples.
-
-A metric or distance function is a function $d: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}^{+}$, having metric or semi-metric properties (look these up).
-
-The Mahalanobis metric is a linear parametric distance function and is most commonly used in metric learning.
-
-% Linear metrics can be interpreted as a linear transformation on the input space.
-
-% Although some methods learn 
-
-structured prediction, predict complex outputs, sequences or trees, combinatorially many possible outputs, 0-1 loss not applicable, metric 
-
-%need to parameterize the distance function, need some form of training data
-%parametric distance metric: Mahalanobis distance, changing the matrix $M$ changes the distance metric, we can learn $M$ such that the distance satisfies our constraints
-%Suppose we have a pair of vectors $\vec{x}, \vec{y} \in \mathbb{R}^D$
-%\begin{equation}
-%d_{M}(\vec{x},\vec{y}) = \sqrt{(\vec{x}-\vec{y})^{T} \mat{M} (\vec{x}-\vec{y})}
-%\label{eq:mahalanobis_distance}
-%\end{equation}
-%metric: identity of indiscernibles: d(x,y) = 0 => x = y, symmetric: d(x,y) = d(y,x), non-negative: d(x,y) >= 0, sub-additive (triangle inequality): d(x,y) + d(y,z) >= d(x,z)
-%pseudo: relaxes identity of indiscernibles to: d(x,x) = 0, meaning that there might be y not equal to x such that d(x,y) = 0
-%Mahalanobis distance is pseudo-metric if $M$ is positive semi-definite and metric if $M$ is positive definite
-%Linear metric, can be rewritten as linear transformation of the input space, comes in handy for nearest neighbor retrieval since we can still use Euclidean distance between transformed points
-%rewrite $M = L^T L$, learn L, M is always PSD and the metric thus a pseudo metric, L is a linear transformation of the feature space such that Euclidean norm of transformed difference vector (or difference between transformed vectors) corresponds to $d_M$
-%\begin{equation}
-%d_{M}(\vec{x},\vec{y}) = ||\mat{L}(\vec{x}_{i}-\vec{y}_{i})||
-%\label{eq:mahalanobis_transformation}
-%\end{equation}
-%$||\mat{L}(\vec{x}_{i}-\vec{y}_{i})|| = ||\mat{L}\vec{x}_{i}-\mat{L}\vec{y}_{i}||$
-
-
-\subsubsection{Learning from equivalence constraints}
-
-Suppose we have a problem with discrete labels for the examples, for classification or clustering we would like distances between examples to be small if their labels are the same and large otherwise.
-
-\todo{Describe these methods (related work)}
-
-%suppose we have a problem with input space $\mathcal{X} \subseteq \mathbb{R}^n$ and as output discrete class labels $\mathcal{Y} = {1, 2, ..., C}$. Then we want distance to be small iff labels are the same. kNN example, clustering example
-%training set: subsets or pairs of objects which are similar. Many methods also use dissimilarity information: subsets or pairs of objects which are dissimiilar.
-%try to make within-class variance small, difference between different classes large
-%very applicable for classification tasks, but not so much for non-binary task such as those with a structured loss function, have to select some arbitrary cut-off for similarity or dissimilarity
-
-The \acf{ITML} method \cite{davis2007information} considers similarity constraints of the form $d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{j}) \leq u$ and dissimilarity constraints of the form $d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{k}) \geq \ell$, where $u$ and $\ell$ are numeric upper and lower bounds on the distance between similar points pairs $\vec{x}_{i}, \vec{x}_{j}$ and dissimilar point pairs $\vec{x}_{i}, \vec{x}_{k}$. A matrix $\mat{M}$ is learned that satisfies these constraints while minimizing LogDet divergence between an input matrix $\mat{M}_0$ and $\mat{M}$.
-
-
-$d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{j}) + 1 \leq d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{k})$
-\subsubsection{Learning from ranking constraints}
-
-Suppose we have a problem without discrete labels but in which we try to find the most similar examples, we would like the distance to a similar example to be smaller than the distance to a less similar example.
-
-$d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{j}) < d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{k})$
-
-\subsubsection{Learning from distance constraints}
-
-Metric learning method generally don't do this, however MDS and visualization methods seem related in that they learn from pairwise distance matrix
-
-\subsection{Nearest neighbor classification}
-
-\subsection{Semantic segmentation}
-
-%training set: ranking or triples of objects for which one is closer to the other
-%try to satisfy as many of these constraints as possible
-
-
-\subsection{SGD}
- \cite{rakhlin2012making} ASGD with suffix averaging is O(1/T) \cite{bottou2010large} ASGD or SGDQN is good for large scale problems \cite{bottou2008tradeoffs} SGD algorithms work surprisingly well in large scale learning \cite{xu2011towards} ASGD with specific parameters is optimal
 
 
 
