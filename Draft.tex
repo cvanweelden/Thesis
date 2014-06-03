@@ -1,0 +1,95 @@
+\documentclass[a4paper,titlepage]{article}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+%\usepackage[scale=.65]{geometry}
+%\usepackage{fullpage}
+%\usepackage{a4wide}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{float}
+\usepackage{acronym}
+\usepackage{cite}
+\usepackage{url}
+\usepackage[usenames, pdftex]{color}
+\usepackage{soul}
+\usepackage{rotating}
+\usepackage{booktabs}
+\usepackage{todonotes}
+\usepackage{amsfonts}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{wrapfig}
+\usepackage{lipsum}
+
+%\newenvironment{textbox}{\medskip \begin{mdframed}}{\end{mdframed} \medskip}
+
+\floatstyle{ruled}
+\newfloat{textbox}{thp}{lob}
+\floatname{textbox}{Text Box}
+
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\setlength{\marginparwidth}{4cm} %else todo notes will only fill halve the margin
+
+\newcommand{\note}[1]{\marginpar{\colorbox{yellow}{\parbox{3.7cm}{#1}}}}
+
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\newcommand{\mat}[1]{\mathbf{#1}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\acrodef{MDS}{multidimensional scaling}
+\acrodef{MSE}{mean squared error}
+\acrodef{LMNN}{large margin nearest neighbor}
+\acrodef{kNN}[$k$NN]{$k$-nearest neighbors}
+\acrodef{HCRF}{hierarchical conditional random field}
+\acrodef{SGD}{stochastic gradient descent}
+\acrodef{ITML}{information-theoretic metric learning}
+
+%\title{Metric alignment}
+%\title{Aligning metric to a distance function in an unknown space.}
+%\title{Metric alignment: learning distance functions that linearly approximate arbitrary similarity measures.}
+\title{Metric alignment: linear approximation of arbitrary similarity measures.}
+%\title{Metric alignment: metric learning for structured prediction problems using absolute distance constraints.}
+%\title{}
+%\title{}
+%\title{}
+
+
+\author{Carsten van Weelden  \\ \texttt{cvanweelden@gmail.com} \\ 0518824 \and \small{Supervisor:} \\ Jan van Gemert \\ \texttt{J.C.vanGemert@uva.nl} \and University of Amsterdam\\
+  The Netherlands \\ \\ In partial fulfillment etc.}
+%\date{}                                           % Activate to display a given date or no date
+
+\begin{document}
+%\maketitle
+
+%\begin{abstract}
+
+%\end{abstract}
+
+%\pagebreak
+
+%\tableofcontents
+
+%\pagebreak
+
+
+%Boxes to write:
+% kNN classification
+% k-means clustering
+% structured prediction problems (or)
+% loss functions used in machine learning
+% image segmentation problems
+% zero-shot learning / attribute based learning
+
+
+\include{Background_Drafts}
+
+\bibliographystyle{plain}
+\bibliography{Thesis}
+
+\end{document}
