@@ -1,0 +1,94 @@
+\section{Related work}
+
+
+
+
+
+\section*{Old snippets}
+
+
+\subsection{Supervised metric learning}
+\label{sec:metric_learning}
+
+
+
+Many machine learning methods depend on pairwise comparisons between object representations. 
+
+Euclidean distance does not always correspond with semantic distance or similarity.
+
+The aim of metric learning methods is to learn a distance function helpful to the problem.
+
+%local vs global, supervised vs unsupervised, linear vs non-linear
+
+
+
+\subsubsection{Notation and problem formulation}
+
+
+The problem of metric learning is to learn the parameters for a distance function from training examples.
+
+A metric or distance function is a function $d: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}^{+}$, having metric or semi-metric properties (look these up).
+
+The Mahalanobis metric is a linear parametric distance function and is most commonly used in metric learning.
+
+% Linear metrics can be interpreted as a linear transformation on the input space.
+
+% Although some methods learn 
+
+structured prediction, predict complex outputs, sequences or trees, combinatorially many possible outputs, 0-1 loss not applicable, metric 
+
+%need to parameterize the distance function, need some form of training data
+%parametric distance metric: Mahalanobis distance, changing the matrix $M$ changes the distance metric, we can learn $M$ such that the distance satisfies our constraints
+%Suppose we have a pair of vectors $\vec{x}, \vec{y} \in \mathbb{R}^D$
+%\begin{equation}
+%d_{M}(\vec{x},\vec{y}) = \sqrt{(\vec{x}-\vec{y})^{T} \mat{M} (\vec{x}-\vec{y})}
+%\label{eq:mahalanobis_distance}
+%\end{equation}
+%metric: identity of indiscernibles: d(x,y) = 0 => x = y, symmetric: d(x,y) = d(y,x), non-negative: d(x,y) >= 0, sub-additive (triangle inequality): d(x,y) + d(y,z) >= d(x,z)
+%pseudo: relaxes identity of indiscernibles to: d(x,x) = 0, meaning that there might be y not equal to x such that d(x,y) = 0
+%Mahalanobis distance is pseudo-metric if $M$ is positive semi-definite and metric if $M$ is positive definite
+%Linear metric, can be rewritten as linear transformation of the input space, comes in handy for nearest neighbor retrieval since we can still use Euclidean distance between transformed points
+%rewrite $M = L^T L$, learn L, M is always PSD and the metric thus a pseudo metric, L is a linear transformation of the feature space such that Euclidean norm of transformed difference vector (or difference between transformed vectors) corresponds to $d_M$
+%\begin{equation}
+%d_{M}(\vec{x},\vec{y}) = ||\mat{L}(\vec{x}_{i}-\vec{y}_{i})||
+%\label{eq:mahalanobis_transformation}
+%\end{equation}
+%$||\mat{L}(\vec{x}_{i}-\vec{y}_{i})|| = ||\mat{L}\vec{x}_{i}-\mat{L}\vec{y}_{i}||$
+
+
+\subsubsection{Learning from equivalence constraints}
+
+Suppose we have a problem with discrete labels for the examples, for classification or clustering we would like distances between examples to be small if their labels are the same and large otherwise.
+
+\todo{Describe these methods (related work)}
+
+%suppose we have a problem with input space $\mathcal{X} \subseteq \mathbb{R}^n$ and as output discrete class labels $\mathcal{Y} = {1, 2, ..., C}$. Then we want distance to be small iff labels are the same. kNN example, clustering example
+%training set: subsets or pairs of objects which are similar. Many methods also use dissimilarity information: subsets or pairs of objects which are dissimiilar.
+%try to make within-class variance small, difference between different classes large
+%very applicable for classification tasks, but not so much for non-binary task such as those with a structured loss function, have to select some arbitrary cut-off for similarity or dissimilarity
+
+The \acf{ITML} method \cite{davis2007information} considers similarity constraints of the form $d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{j}) \leq u$ and dissimilarity constraints of the form $d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{k}) \geq \ell$, where $u$ and $\ell$ are numeric upper and lower bounds on the distance between similar points pairs $\vec{x}_{i}, \vec{x}_{j}$ and dissimilar point pairs $\vec{x}_{i}, \vec{x}_{k}$. A matrix $\mat{M}$ is learned that satisfies these constraints while minimizing LogDet divergence between an input matrix $\mat{M}_0$ and $\mat{M}$.
+
+
+\subsubsection{Learning from ranking constraints}
+
+Suppose we have a problem without discrete labels but in which we try to find the most similar examples, we would like the distance to a similar example to be smaller than the distance to a less similar example.
+$d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{j}) + 1 \leq d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{k})$
+
+$d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{j}) < d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{k})$
+
+\subsubsection{Learning from distance constraints}
+
+Metric learning method generally don't do this, however MDS and visualization methods seem related in that they learn from pairwise distance matrix
+
+\subsection{Nearest neighbor classification}
+
+\subsection{Semantic segmentation}
+
+%training set: ranking or triples of objects for which one is closer to the other
+%try to satisfy as many of these constraints as possible
+
+
+\subsection{SGD}
+ \cite{rakhlin2012making} ASGD with suffix averaging is O(1/T) \cite{bottou2010large} ASGD or SGDQN is good for large scale problems \cite{bottou2008tradeoffs} SGD algorithms work surprisingly well in large scale learning \cite{xu2011towards} ASGD with specific parameters is optimal
+
