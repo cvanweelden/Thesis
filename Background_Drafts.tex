@@ -75,11 +75,11 @@ We can graphically represent a linear distance function as an ellipsoid in the o
 Metric learning methods require supervision in the form of constraints on the learned distance. When objects can easily be judged to be either similar or dissimilar, these can be given as a set of similarity/dissimilarity constraints. This is given as a set $\mathcal{S}$ of pairs $(i, j)$ that are similar and a set $\mathcal{D}$ of pairs that are dissimilar. These constraints have the following form:
 \begin{subequations}
 \begin{align}
-d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &\leq \ell & (i, j) \in \mathcal{S}, \\
-d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &\geq u & (i, j) \in \mathcal{D}.
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &\leq u & (i, j) \in \mathcal{S}, \\
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &\geq \ell & (i, j) \in \mathcal{D}.
 \end{align}
 \end{subequations}
-They constrain the distances between similar pairs to be lower than some lower bound $\ell$ and distances between dissimilar pairs to be larger than some upper bound $u$. Suitable bounds have to be chosen for each problem. This is generally done by computing the 5th and 95th percentiles of the sampled distribution of distances between random pairs and equating these to $\ell$ and $u$ respectively.
+They constrain the distances between similar pairs to be lower than some upper bound $u$ and distances between dissimilar pairs to be larger than some lower bound $\ell$. Suitable bounds have to be chosen for each problem. This is generally done by computing the 5th and 95th percentiles of the sampled distribution of distances between random pairs and equating these to  $u$ and $\ell$ respectively.
 
 Another popular choice for distance constraints is relative constraints. Relative constraints constrain one distance to be larger or smaller than another distance. Relative constraints are defined as a set $\mathcal{R}$ of triplets of points $(i,j,k)$ and have the following form:
 \begin{equation}
@@ -103,9 +103,10 @@ In \cite{kulis2012metric} the author present a general formulation of the metric
 Here $r(\mat{A})$ is a regularization term which is a function of the parameter matrix $\mat{A}$, $c_1, ..., c_m$ are loss functions which encode the given constraints and $\lambda$ is a trade-off parameter between the regularization term and the costs. The way in which these cost functions are defined, the regularization function that is chosen and the way in which the resulting loss is optimized are the factors that distinguish the different linear metric learning methods.
 
 In (\ref{eq:metriclearningmodel}) the cost functions are given as functions of $\mat{X}^T\mat{A}\mat{X}$ in order to be as general as possible. The term $\mat{X}^T\mat{A}\mat{X}$ denotes the pairwise distance matrix under the learned metric. This is simply there to show that the cost functions are evaluated on $d_\mat{A}$, the learned distance function. In practice the cost functions depend on the given constraints and generally only include the distances between the given pair or triplets of training points. For example, a popular choice is to encode similarity constraints as a hinge loss: 
-\begin{equation}
-c(\mat{X}^T\mat{A}\mat{X}) = \max(0,d_{\mat{A}}(x_i, x_j) - \ell) \qquad \forall (i,j) \in \mathcal{S}.
-\end{equation}
+\begin{align}
+c(\mat{X}^T\mat{A}\mat{X}) &= \max(0,d_{\mat{A}}(x_i, x_j) - u) \qquad \forall (i,j) \in \mathcal{S}, \\
+c(\mat{X}^T\mat{A}\mat{X}) &= \max(0,\ell - d_{\mat{A}}(x_i, x_j)) \qquad \forall (i,j) \in \mathcal{D}.
+\end{align}
 And the equivalent formulation for a hinge loss function on relative distance constraints would be:
 \begin{equation}
 c(\mat{X}^T\mat{A}\mat{X}) = \max(0,d_{\mat{A}}(x_i, x_k) - d_{\mat{A}}(x_i, x_j)) \qquad \forall (i,j,k) \in \mathcal{R}.
@@ -113,7 +114,7 @@ c(\mat{X}^T\mat{A}\mat{X}) = \max(0,d_{\mat{A}}(x_i, x_k) - d_{\mat{A}}(x_i, x_j
 
 Optionally, a regularization term is added to avoid over-fitting. Common examples are the Frobenius norm $\|\mat{A}\|_F$, which is the matrix equivalent to standard $L_2$ regularization and the trace norm $\tr(\mat{A})$ which is similar to $L_1$ regularization in that it prefers low-rank solutions.
 
-The chosen cost functions and regularization terms are generally chosen such that there is a tractable way to minimize the resulting loss function. This optimization can be cast as a minimization over the matrix $\mat{A}$ or by substituting $\mat{A} = \mat{G}^T\mat{G}$ it can be done as a minimization over $\mat{G}$. In the first case this results in a constrained optimization problem since $\mat{A}$ has to be \ac{PSD}. E.g. by reprojecting onto the cone of \ac{PSD} matrices during the optimization  by setting negative eigenvalues to 0. In the second case the problem is unconstrained since $\mat{G}^T\mat{G}$ will always yield a \ac{PSD} matrix.
+The cost functions and regularization terms are generally chosen such that there is a tractable way to minimize the resulting loss function. This optimization can be cast as a minimization over the matrix $\mat{A}$ or by substituting $\mat{A} = \mat{G}^T\mat{G}$ it can be done as a minimization over $\mat{G}$. In the first case this results in a constrained optimization problem since $\mat{A}$ has to be \ac{PSD}. E.g. by reprojecting onto the cone of \ac{PSD} matrices during the optimization  by setting negative eigenvalues to 0. In the second case the problem is unconstrained since $\mat{G}^T\mat{G}$ will always yield a \ac{PSD} matrix, but will be in a quadratic form instead of a linear form.
 
 
 %\subsection{Other approaches}
