@@ -17,7 +17,7 @@
 
 %2.1 objects represented as vectors of feature values, feature space
 %1.1-1 machine learning features, feature space,
-In machine learning tasks, objects of interest are represented using a set of features. Features correspond to attributes of the object that can be encoded in some way. For example the features representing images may simply be the pixel values of an image, but may also be more complex features computed from the basic pixel values. Each object is thus represented by a feature vector containing the feature values. We will refer to the space of all possible feature vectors as the \emph{feature space} and in the case of $d$-dimensional real-valued vectors take this space to be $\mathbb{R}^d$.
+In machine learning tasks, objects of interest are represented using a set of features. Features correspond to attributes of the object that can be encoded in some way. For example the features representing images may simply be the pixel values of an image, but may also be more complex features computed from the basic pixel values. Each object is thus represented by a feature vector containing the feature values. We will refer to the space of all possible feature vectors as the \emph{feature space} and in the case of $d$-dimensional real-valued vectors take this space to be $\mathbb{R}^d$. \todo{Too abstract, might loose some readers in the first paragraph. Too fast into the mathematical notation. Maybe start with application. Show an image of the example (maybe replace cars with the animals set). Try to also show ground truth metric in an image.}
 
 %2.2-1 measure similarity by assuming small difference in feature vector means similar objects,
 %1.1-2 measuring distance, finding similar samples, Euclidean distance
@@ -61,6 +61,7 @@ However, there is a more direct approach to the metric learning problem: instead
 \label{fig:approach_overview}
 \end{center}
 \end{figure}
+\todo{Make a plot for Figure \ref{fig:approach_overview}.}
 
 %4.2 classification problems with continuous loss function
 %4.3 kNN for structured prediction, performs best when distance function is small if loss is small for k=1, have to predict loss from feature space
