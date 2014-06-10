@@ -9,6 +9,35 @@
 %minimization
 
 
+\section*{Exploratory draft 1}
+
+In order to apply metric learning, we need to have some idea of what the ideal metric would like like. This background knowledge is formulated in the form of a set of distance constraints. In section \ref{sec:background_constraints} we already talked about two types of distance constraints that are often used to train a metric: similarity/dissimilarity constraints and relative distance constraints.
+
+The type of constraints that are used depend on what background knowledge is available. If we are dealing with a classification problem and thus have class labels for each training example, the obvious choice is to use similarity/dissimilarity constraints but we might also use relative constraints. If all we have is rankings, then we would not use similarity constraints, but could still use relative constraints. However, what would we use when we are dealing with a structured prediction problem? In that case the background knowledge we have consists of a continuous loss function $\mathcal{L}: \mathcal{Y} \times \mathcal{Y} \rightarrow \mathbb{R}$ that assigns a loss to a pair of outputs corresponding to a pair of inputs in the training set. From this we could generate relative distance constraints in the following way:
+\begin{align}
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &< d_{\mat{A}}(\vec{x}_i, \vec{x}_k) &\leftrightarrow&&\mathcal{L}(\vec{y}_i, \vec{y}_j) &< \mathcal{L}(\vec{y}_i, \vec{y}_k).
+\end{align}
+However, there is a more direct approach where we constrain the learned distance between an input pair to be exactly equal to the loss between the corresponding outputs. This idea is generalized in the notion of absolute distance constraints.
+
+
+
+\subsection{Absolute distance constraints}
+
+Absolute distance constraints allow us to encode background knowledge for learning a distance function if that background knowledge consists of knowing for at least some of the training points exactly what distance we would like the learned metric to have between those training points. Like similarity constraints, absolute distance constraints are given as a set $\mathcal{A}$ of pairs $(i,j) \in \mathcal{A}$. However, instead of having a single bound for all constraints, each pair $(i,j)$ is associated with a separate ground-truth distance $\hat{d}(i,j)$. Absolute distance constraints are defined as follows: 
+\begin{align}
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &= \hat{d}(i,j) & (i, j) &\in \mathcal{A}.
+\end{align}
+Here $\hat{d}$ is a function which assigns a ground-truth distance to each pair of points in the given set: $(i,j) \in \mathcal{A}$. In the case of a structured prediction problem, we would equate this function to the structured loss between the ground-truth outputs corresponding to the pair:
+\begin{equation}
+\hat{d}(i,j) = \mathcal{L}(\vec{y}_i, \vec{y}_j).
+\end{equation}
+However, we define it as a general function $\hat{d}(i,j)$ since it might also be used in other types of learning problems. The method for learning a metric from these constraints that we describe in this section is applicable to any problem in which there is a ground truth metric defined for a number of training pairs much larger than the number of dimensions of the feature space.
+
+
+
+
+
+
 \section*{Old section}
 
 %What is the problem with other metric learning methods?
