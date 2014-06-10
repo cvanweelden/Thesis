@@ -20,7 +20,7 @@
 
 Metric learning methods learn a distance function specific to a task through supervised learning. Supervised learning requires a training set containing data points and some sort of side information about those points which informs the learning process. In practice, this side information comes in the form of class labels for each point in classification problems or the correct structured output in structured prediction problems. This side information is often referred to as the ground-truth.
 
-Training points are assumed to be $d$-dimensional real-valued feature vectors in a Euclidean feature space $\mathcal{X} = \mathbb{R}^d$. Let $\mat{X} = \left[ \vec{x}_1, \vec{x}_2, ..., \vec{x}_n \right]$ be the matrix of all the training points, with each column being a single feature vector $\vec{x}_i \in \mathcal{X}$. Each element of a training vector corresponds to a single feature value. Distances between points in the feature space can be measured by the Euclidean distance $\|\vec{x}_i - \vec{x}_j\|_2 = \sqrt{(\vec{x}_i - \vec{x}_j)^T(\vec{x}_i - \vec{x}_j)}$, although in practice the square root is often dropped because the squared distance is easier to compute.
+Training points are assumed to be $d$-dimensional real-valued feature vectors in a Euclidean feature space $\mathcal{X} = \mathbb{R}^d$. Let $\mat{X} = \left[ \vec{x}_1, \vec{x}_2, ..., \vec{x}_n \right]$ be the matrix of all the training points, with each column being a single feature vector $\vec{x}_i \in \mathcal{X}$. Each element of a training vector corresponds to a single feature value. Distances between points in the feature space can be measured by the Euclidean distance $\|\vec{x}_i - \vec{x}_j\|_2 = \sqrt{(\vec{x}_i - \vec{x}_j)^T(\vec{x}_i - \vec{x}_j)}$, although in practice the squared distance is often used since dropping the square root makes the distance easier to compute.
 
 
 
@@ -29,10 +29,10 @@ Training points are assumed to be $d$-dimensional real-valued feature vectors in
 The goal of metric learning is to learn a distance function in the feature space. A distance function, or metric, is a function $d: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}^{+}$ having the following properties:
 \begin{subequations}
 \begin{align}
-        d(\vec{x}_i, \vec{x}_j) & \geq 0 &  \text{non-negativity}, \label{eq:non-negativity}\\
-        d(\vec{x}_i, \vec{x}_j) & = 0 \leftrightarrow i = j & \text{identity of indiscernibles}, \label{eq:identity_of_indiscernibles} \\
-        d(\vec{x}_i, \vec{x}_j) & = d(\vec{x}_j, \vec{x}_i) &  \text{symmetry}, \label{eq:symmetry}\\
-        d(\vec{x}_i, \vec{x}_k) & \leq d(\vec{x}_i, \vec{x}_j) + d(\vec{x}_j, \vec{x}_k) &  \text{triangle inequality}. \label{eq:triangle_unequality}
+        d(\vec{x}_i, \vec{x}_j) & \geq 0 &  &\text{non-negativity}, \label{eq:non-negativity}\\
+        d(\vec{x}_i, \vec{x}_j) & = 0 \leftrightarrow i = j & &\text{identity of indiscernibles}, \label{eq:identity_of_indiscernibles} \\
+        d(\vec{x}_i, \vec{x}_j) & = d(\vec{x}_j, \vec{x}_i) &  &\text{symmetry}, \label{eq:symmetry}\\
+        d(\vec{x}_i, \vec{x}_k) & \leq d(\vec{x}_i, \vec{x}_j) + d(\vec{x}_j, \vec{x}_k) &  &\text{triangle inequality}. \label{eq:triangle_unequality}
 \end{align}
 \end{subequations}
 In addition, a distance function is called a pseudo-metric if it conforms to all these conditions except (\ref{eq:identity_of_indiscernibles}) which is replaced by $d(\vec{x}_i, \vec{x}_i) = 0$, meaning that points still have zero distance to themselves but might also have zero distance to other points. Metric learning is often concerned with learning a pseudo-metric, e.g. in classification problems we would not necessarily want to make a distinction between objects of the same class, hence the distance between them is not constrained to be larger than zero.
@@ -64,27 +64,28 @@ d_{\mat{A}}(\vec{x}_i, \vec{x}_j) & = (\vec{x}_i - \vec{x}_j)^T\mat{A}(\vec{x}_i
 & = (\mat{G}\vec{x}_i - \mat{G}\vec{x}_j)^T(\mat{G}\vec{x}_i - \mat{G}\vec{x}_j) \nonumber \\
 & = \|\mat{G}\vec{x}_i - \mat{G}\vec{x}_j\|_2^2
 \end{align}
-Here $\mat{G}$ is a $r \times d$ matrix with $r$ being the rank of $\mat{A}$. Therefore, if the distance matrix $\mat{A}$ is not full-rank, transforming the points in feature space corresponds to projecting onto a lower-dimensional space $\mathbb{R}^r$. This can be useful for high-dimensional problems since it has the same effects as dimension reduction. Reducing the dimensionality of the problem gives a more compact feature representation and distance calculations are less expensive. Furthermore, high-dimensional spaces tend to be sparse as volume increases exponentially with the number of dimensions, often referred to as the curse of dimensionality. Hence, several metric learning methods try to learn low-rank metrics.
+Here $\mat{G}$ is a $r \times d$ matrix with $r$ being the rank of $\mat{A}$. \todo{Explain this better: first explain why this is a linear transformation by G, then explain why G shape is rxd, then explain fixed rank learning benefits.} Therefore, if the distance matrix $\mat{A}$ is not full-rank, transforming the points in feature space corresponds to projecting onto a lower-dimensional space $\mathbb{R}^r$. This can be useful for high-dimensional problems since it has the same effects as dimension reduction. Reducing the dimensionality of the problem gives a more compact feature representation and distance calculations are less expensive. Furthermore, high-dimensional spaces tend to be sparse as volume increases exponentially with the number of dimensions, often referred to as the curse of dimensionality. Hence, several metric learning methods try to learn low-rank metrics.
 
 We can graphically represent a linear distance function as an ellipsoid in the original space. The ellipse then denotes the iso-contour of equal distance from the center of the ellipse. An example can be seen in Figure \ref{fig:approach_overview}. The axes of the ellipsoid correspond to the eigenvectors of the matrix $\mat{A}$ and the length of the axis should be equal to the corresponding eigenvalues to show the iso-line where the distance from the center of the ellipse is one. Hence, the Euclidean distance shown in the left of Figure \ref{fig:approach_overview} is a circle with radius one since the Euclidean distance corresponds to $\mat{A} = \mat{I}$. 
 
 
 
 \subsection{Constraints}
+\label{sec:background_constraints}
 
 Metric learning methods require supervision in the form of constraints on the learned distance. When objects can easily be judged to be either similar or dissimilar, these can be given as a set of similarity/dissimilarity constraints. This is given as a set $\mathcal{S}$ of pairs $(i, j)$ that are similar and a set $\mathcal{D}$ of pairs that are dissimilar. These constraints have the following form:
 \begin{subequations}
 \begin{align}
-d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &\leq u & (i, j) \in \mathcal{S}, \\
-d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &\geq \ell & (i, j) \in \mathcal{D}.
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &\leq u & (i, j) &\in \mathcal{S}, \\
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &\geq \ell & (i, j) &\in \mathcal{D}.
 \end{align}
 \end{subequations}
 They constrain the distances between similar pairs to be lower than some upper bound $u$ and distances between dissimilar pairs to be larger than some lower bound $\ell$. Suitable bounds have to be chosen for each problem. This is generally done by computing the 5th and 95th percentiles of the sampled distribution of distances between random pairs and equating these to  $u$ and $\ell$ respectively.
 
 Another popular choice for distance constraints is relative constraints. Relative constraints constrain one distance to be larger or smaller than another distance. Relative constraints are defined as a set $\mathcal{R}$ of triplets of points $(i,j,k)$ and have the following form:
-\begin{equation}
-d_{\mat{A}}(\vec{x}_i, \vec{x}_j) < d_{\mat{A}}(\vec{x}_i, \vec{x}_k).
-\end{equation}
+\begin{align}
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &< d_{\mat{A}}(\vec{x}_i, \vec{x}_k) & (i, j, k) &\in \mathcal{R}.
+\end{align}
 Thus for each triplet $(i,j,k) \in \mathcal{R}$ the distance between points $\vec{x}_i$ and $\vec{x}_j$ should be smaller than the distance between points $\vec{x}_i$ and $\vec{x}_k$.
 
 Distance constraints are generated from the ground truth in the training set. For small problems with a small training set we can take a comprehensive approach and enumerate all possible pairs or triplets. However, for most real-world problems the training set has to be large and enumerating all pairs would be intractable. Therefore we have to resort to taking a sample of pairs from the training set. There are two main approaches to this sampling: global sampling and local sampling. Global sampling is the most general and corresponds to simply picking random pairs or triplets from the training set. This gives the most representative sample of distances in the feature space. However, many methods that use distance function in feature space are only concerned with pairs of points that have small pairwise distances. For example, \ac{kNN} only looks at the nearest neighbors of a point and any points that have a larger distance are ignored. In this case we can also restrict our samples to only consist of pairs or triplets that are contained in a local neighborhood: local sampling. One way to do this, which is specifically useful for \ac{kNN} applications is to sample a random point and then sample one or two random points amongst the nearest neighbors of this point in order to form a pair or triplet. Since the nearest neighbors depend on the distance function that is used they may change during the learning process. Therefore, we might want to iterate this sampling during the learning process, which we will refer to as iterative local sampling.
@@ -104,13 +105,13 @@ Here $r(\mat{A})$ is a regularization term which is a function of the parameter 
 
 In (\ref{eq:metriclearningmodel}) the cost functions are given as functions of $\mat{X}^T\mat{A}\mat{X}$ in order to be as general as possible. The term $\mat{X}^T\mat{A}\mat{X}$ denotes the pairwise distance matrix under the learned metric. This is simply there to show that the cost functions are evaluated on $d_\mat{A}$, the learned distance function. In practice the cost functions depend on the given constraints and generally only include the distances between the given pair or triplets of training points. For example, a popular choice is to encode similarity constraints as a hinge loss: 
 \begin{align}
-c(\mat{X}^T\mat{A}\mat{X}) &= \max(0,d_{\mat{A}}(x_i, x_j) - u) \qquad \forall (i,j) \in \mathcal{S}, \\
-c(\mat{X}^T\mat{A}\mat{X}) &= \max(0,\ell - d_{\mat{A}}(x_i, x_j)) \qquad \forall (i,j) \in \mathcal{D}.
+c(\mat{X}^T\mat{A}\mat{X}) &= \max(0,d_{\mat{A}}(x_i, x_j) - u)  &\forall (i,j) &\in \mathcal{S}, \\
+c(\mat{X}^T\mat{A}\mat{X}) &= \max(0,\ell - d_{\mat{A}}(x_i, x_j)) &\forall (i,j) &\in \mathcal{D}.
 \end{align}
 And the equivalent formulation for a hinge loss function on relative distance constraints would be:
-\begin{equation}
-c(\mat{X}^T\mat{A}\mat{X}) = \max(0,d_{\mat{A}}(x_i, x_k) - d_{\mat{A}}(x_i, x_j)) \qquad \forall (i,j,k) \in \mathcal{R}.
-\end{equation}
+\begin{align}
+c(\mat{X}^T\mat{A}\mat{X}) &= \max(0,d_{\mat{A}}(x_i, x_k) - d_{\mat{A}}(x_i, x_j)) &\forall (i,j,k) &\in \mathcal{R}.
+\end{align}
 
 Optionally, a regularization term is added to avoid over-fitting. Common examples are the Frobenius norm $\|\mat{A}\|_F$, which is the matrix equivalent to standard $L_2$ regularization and the trace norm $\tr(\mat{A})$ which is similar to $L_1$ regularization in that it prefers low-rank solutions.
 
