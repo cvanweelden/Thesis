@@ -20,7 +20,7 @@
 
 Metric learning methods learn a distance function specific to a task through supervised learning. Supervised learning requires a training set containing data points and some sort of side information about those points which informs the learning process. In practice, this side information comes in the form of class labels for each point in classification problems or the correct structured output in structured prediction problems. This side information is often referred to as the ground-truth.
 
-Training points are assumed to be $d$-dimensional real-valued feature vectors in a Euclidean feature space $\mathcal{X} = \mathbb{R}^d$. Let $\mat{X} = \left[ \vec{x}_1, \vec{x}_2, ..., \vec{x}_n \right]$ be the matrix of all the training points, with each column being a single feature vector $\vec{x}_i \in \mathcal{X}$. Each element of a training vector corresponds to a single feature value. Distances between points in the feature space can be measured by the Euclidean distance $\|\vec{x}_i - \vec{x}_j\|_2 = \sqrt{(\vec{x}_i - \vec{x}_j)^T(\vec{x}_i - \vec{x}_j)}$, although in practice the squared distance is often used since dropping the square root makes the distance easier to compute.
+Training points are assumed to be $d$-dimensional real-valued feature vectors in a Euclidean feature space $\mathcal{X} = \mathbb{R}^d$. Let $\mat{X} = \left[ \vec{x}_1, \vec{x}_2, ..., \vec{x}_n \right]$ be the matrix of all the training points, with each column being a single feature vector $\vec{x}_i \in \mathcal{X}$. Each element of a training vector corresponds to a single feature value. Distances between points in the feature space can be measured by the Euclidean distance $\|\vec{x}_i - \vec{x}_j\| = \sqrt{(\vec{x}_i - \vec{x}_j)^T(\vec{x}_i - \vec{x}_j)}$, although in practice the squared distance is often used since dropping the square root makes the distance easier to compute.
 
 
 
@@ -39,9 +39,9 @@ In addition, a distance function is called a pseudo-metric if it conforms to all
 
 Most metric learning methods learn a linear distance function. A linear distance function is limited to rotating and scaling the dimensions along which the distance is measured. Because of this it can also be computed by first applying a linear transformation to the input space and then measuring the Euclidean distance in the transformed space. This has the benefit that algorithms that rely on a Euclidean distance, such as nearest-neighbor look up with spatial indexing techniques, can be used off-the-shelf.
 
-The distance function is often parameterized as a squared metric with a $d \times d$ parameter matrix $\mat{A}$:
+The distance function is often parameterized as a metric with a $d \times d$ parameter matrix $\mat{A}$:
 \begin{equation}
-d_{\mat{A}}(\vec{x}_i, \vec{x}_j) = (\vec{x}_i - \vec{x}_j)^T\mat{A}(\vec{x}_i - \vec{x}_j).
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) = \sqrt{(\vec{x}_i - \vec{x}_j)^T\mat{A}(\vec{x}_i - \vec{x}_j)}.
 \label{eq:linearmetric}
 \end{equation}
 In the metric learning literature this form of distance function is often called a Mahalanobis distance, although this term was originally used for a specific instance of this distance, see Text Box \ref{tb:mahalanobis}. If $\mat{A}$ is positive definite then $d_{\mat{A}}$ is a metric and if $\mat{A}$ is positive semi-definite then $d_{\mat{A}}$ is a pseudo-metric. If $\mat{A}$ equals the identity matrix then $d_{\mat{A}}$ is simply the Euclidean distance.
@@ -56,13 +56,13 @@ where $\Sigma$ is the covariance of the distribution, or an estimate thereof. Th
 \label{tb:mahalanobis}
 \end{textbox}
 
-Because a Mahalanobis metric is a linear metric, it can be interpreted as the squared Euclidean distance in a linear transformation of the feature space. This is done by substituting $\mat{A} = \mat{G}^T\mat{G}$ and transforming points in the feature space by $\mat{G}$ in the following way:
+Because a Mahalanobis metric is a linear metric, it can be interpreted as the Euclidean distance in a linear transformation of the feature space. This is done by substituting $\mat{A} = \mat{G}^T\mat{G}$ and transforming points in the feature space by $\mat{G}$ in the following way:
 \begin{align}
-d_{\mat{A}}(\vec{x}_i, \vec{x}_j) & = (\vec{x}_i - \vec{x}_j)^T\mat{A}(\vec{x}_i - \vec{x}_j) \nonumber \\
-& = (\vec{x}_i - \vec{x}_j)^T\mat{G}^T\mat{G}(\vec{x}_i - \vec{x}_j) \nonumber \\
-& = \left(\mat{G}(\vec{x}_i - \vec{x}_j)\right)^T \mat{G}(\vec{x}_i - \vec{x}_j) \nonumber \\
-& = (\mat{G}\vec{x}_i - \mat{G}\vec{x}_j)^T(\mat{G}\vec{x}_i - \mat{G}\vec{x}_j) \nonumber \\
-& = \|\mat{G}\vec{x}_i - \mat{G}\vec{x}_j\|_2^2
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) & = \sqrt{(\vec{x}_i - \vec{x}_j)^T\mat{A}(\vec{x}_i - \vec{x}_j)}\nonumber \\
+& =  \sqrt{(\vec{x}_i - \vec{x}_j)^T\mat{G}^T\mat{G}(\vec{x}_i - \vec{x}_j)} \nonumber \\
+& =  \sqrt{\left(\mat{G}(\vec{x}_i - \vec{x}_j)\right)^T \mat{G}(\vec{x}_i - \vec{x}_j)} \nonumber \\
+& =  \sqrt{(\mat{G}\vec{x}_i - \mat{G}\vec{x}_j)^T(\mat{G}\vec{x}_i - \mat{G}\vec{x}_j)} \nonumber \\
+& =  \|\mat{G}\vec{x}_i - \mat{G}\vec{x}_j\|
 \end{align}
 Here $\mat{G}$ is a $r \times d$ matrix with $r$ being the rank of $\mat{A}$. \todo{Explain this better: first explain why this is a linear transformation by G, then explain why G shape is rxd, then explain fixed rank learning benefits.} Therefore, if the distance matrix $\mat{A}$ is not full-rank, transforming the points in feature space corresponds to projecting onto a lower-dimensional space $\mathbb{R}^r$. This can be useful for high-dimensional problems since it has the same effects as dimension reduction. Reducing the dimensionality of the problem gives a more compact feature representation and distance calculations are less expensive. Furthermore, high-dimensional spaces tend to be sparse as volume increases exponentially with the number of dimensions, often referred to as the curse of dimensionality. Hence, several metric learning methods try to learn low-rank metrics.
 
