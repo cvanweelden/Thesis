@@ -1,77 +1,83 @@
 \section{Metric alignment}
 
-%absolute distance constraints
 
-%cost function
+\section*{Exploratory draft 2}
 
-%loss function
+Our metric alignment method is based on the intuition that, if the ground truth in our training data has a structure on which we can define a real-valued loss function, we can use this loss function to inform our metric learning.
+Specifically, we learn a metric that minimizes the difference between the distance in feature space and the loss between the corresponding ground-truth output structures.
+The learned metric thus makes distances in feature space predictive of loss in ground-truth space.\footnote{Note that the output structure need not necessarily induce any specific type of space, all we need is a positive, real-valued loss function defined on a large enough sample of pairs from the training set.}
+In this way the method aligns feature space to ground-truth space and we will refer to the method as \emph{metric alignment}.
 
-%minimization
+Metric alignment was designed specifically to be applicable to structured prediction problems. These problems naturally have a real-valued loss function
 
 
-In order to apply metric learning, we need to have some idea of what the ideal metric would like like. This background knowledge is formulated in the form of a set of distance constraints. In section \ref{sec:background_constraints} we already talked about two types of distance constraints that are often used to train a metric: similarity/dissimilarity constraints and relative distance constraints.
 
-The type of constraints that are used depend on what background knowledge is available. If we are dealing with a classification problem and thus have class labels for each training example, the obvious choice is to use similarity/dissimilarity constraints but we might also use relative constraints. If all we have is rankings, then we would not use similarity constraints, but could still use relative constraints. However, what would we use when we are dealing with a structured prediction problem? In that case the background knowledge we have consists of a continuous loss function $\mathcal{L}: \mathcal{Y} \times \mathcal{Y} \rightarrow \mathbb{R}$ that assigns a loss to a pair of outputs corresponding to a pair of inputs in the training set. From this we could generate relative distance constraints in the following way:
+
+\section*{Exploratory draft 1}
+
+In order to apply metric learning, we need to have some idea of what the ideal metric would look like.
+This background knowledge is formulated in the form of a set of distance constraints.
+In section \ref{sec:background_constraints} we already talked about two types of distance constraints that are often used to train a metric: similarity/dissimilarity constraints and relative distance constraints.
+
+The type of constraints that are used depend on what background knowledge is available.
+If we are dealing with a classification problem and thus have class labels for each training example, the obvious choice is to use similarity/dissimilarity constraints but we might also use relative constraints.
+If all we have is rankings, then we would not use similarity constraints, but could still use relative constraints.
+However, what would we use when we are dealing with a structured prediction problem?
+In that case the background knowledge we have consists of a continuous loss function $\mathcal{L}: \mathcal{Y} \times \mathcal{Y} \rightarrow \mathbb{R}$ \todo{Explain continuous loss functions in structured prediction problems.} that assigns a loss to a pair of outputs corresponding to a pair of inputs in the training set.
+From this we could generate relative distance constraints in the following way:
 \begin{align}
 d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &< d_{\mat{A}}(\vec{x}_i, \vec{x}_k) &\leftrightarrow&&\mathcal{L}(\vec{y}_i, \vec{y}_j) &< \mathcal{L}(\vec{y}_i, \vec{y}_k).
 \end{align}
-However, there is a more direct approach where we constrain the learned distance between an input pair to be exactly equal to the loss between the corresponding outputs. This idea is generalized in the notion of absolute distance constraints.
+However, there is a more direct approach where we constrain the learned distance between an input pair to be exactly equal to the loss between the corresponding outputs.
+This idea is generalized in the notion of absolute distance constraints.
 
 
 
 \subsection{Absolute distance constraints}
 
-Absolute distance constraints allow us to encode background knowledge for learning a distance function if that background knowledge consists of knowing for at least some of the training points exactly what distance we would like the learned metric to have between those training points. Like similarity constraints, absolute distance constraints are given as a set $\mathcal{A}$ of pairs $(i,j) \in \mathcal{A}$. However, instead of having a single bound for all constraints, each pair $(i,j)$ is associated with a separate ground-truth distance $\hat{d}(i,j)$. Absolute distance constraints are defined as follows: 
+Absolute distance constraints allow us to encode background knowledge for learning a distance function if that background knowledge consists of knowing for at least some of the training points exactly what distance we would like the learned metric to have between those training points.
+Like similarity constraints, absolute distance constraints are given as a set $\mathcal{A}$ of pairs $(i,j) \in \mathcal{A}$.
+However, instead of having a single bound for all constraints, each pair $(i,j)$ is associated with a separate ground-truth distance $\hat{d}(i,j)$. 
+Absolute distance constraints are defined as follows: 
 \begin{align}
 d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &= \hat{d}(i,j) & (i, j) &\in \mathcal{A}.
 \end{align}
-Here $\hat{d}$ is a function which assigns a ground-truth distance to each pair of points in the given set: $(i,j) \in \mathcal{A}$. We shall refer to $\hat{d}$ as the \emph{target metric}. In the case of a structured prediction problem, we would equate this function to the structured loss between the ground-truth outputs corresponding to the pair:
+Here $\hat{d}$ is a function which assigns a ground-truth distance to each pair of points in the given set: $(i,j) \in \mathcal{A}$. We shall refer to $\hat{d}$ as the \emph{target metric}.
+In the case of a structured prediction problem, we would equate this function to the structured loss between the ground-truth outputs corresponding to the pair:
 \begin{equation}
 \hat{d}(i,j) = \mathcal{L}(\vec{y}_i, \vec{y}_j).
 \end{equation}
-However, we define it as a general function $\hat{d}(i,j)$ since it might also be used in other types of learning problems. The method for learning a metric from these constraints that we describe in this section is applicable to any problem in which there is a ground truth metric defined for a number of training pairs much larger than the number of dimensions of the feature space.
+However, we define it as a general function $\hat{d}(i,j)$ since it might also be used in other types of learning problems.
+The method for learning a metric from these constraints that we describe in this section is applicable to any problem in which there is a ground truth metric defined for a number of training pairs much larger than the number of dimensions of the feature space.
 
 
-
-\subsection{Learning from absolute distance constraints}
-
-In order to learn a metric from absolute distance constraints we encode the constraints as a quadratic error function with respect to the learned parameter matrix which can be minimized to align the learned metric to the target metric. We define our error as a \acf{MSE} function in the following way:
+In order to learn a metric from absolute distance constraints we encode the constraints as a set of quadratic cost functions.
 \begin{equation}
-\text{MSE}_\mathcal{A}(\mat{A}) = \frac{1}{|\mathcal{A}|}\sum_{(i,j) \in \mathcal{A}} \left( d_{\mat{A}}(\vec{x}_i, \vec{x}_j) - \hat{d}(i,j) \right)^2.
-\label{eq:mse}
+c_ij(\hat{d}(i,j), d_{\mat{A}}(\vec{x}_i, \vec{x}_k)) = \frac{1}{2} \left( \hat{d}(i,j) - d_{\mat{A}}(\vec{x}_i, \vec{x}_k) \right)^2
 \end{equation}
-Here $d_{\mat{A}}$ is the Mahalanobis metric parametrized by the matrix $\mat{A}$ that we learn, while $\hat{d}$ is the target metric with which we wish to align our learned metric. Thus, the \ac{MSE} gives us a quadratic error between the learned distances and the target distances and therefore we can learn the metric by selecting a parameter matrix $\mat{A}$ that minimizes the \ac{MSE}.
 
 
-\subsection{Optimization by stochastic gradient descent}
 
-In order to fit the transformation matrix $\mat{A}$ to the training set we use \acf{SGD}. Gradient descent is an iterative first order optimization algorithm that finds a local minimum of an error function. On each iteration it changes the parameters by a small step in the direction opposite to the gradient of the error function with respect to the parameters. Since the negative gradient is the direction of steepest descent, each step leads to a reduction in error. When the error function is defined as a sum of individual errors on examples in a training set, \ac{SGD} is a stochastic version of gradient descent where at each step the gradient is computed on the error of a single example. This does not require a summation over all examples in the training set for each update, which is beneficial when the training set is large. \todo{Highlight benefits of SGD. Discuss small-scale vs large scale learning, relevant papers of Bottou and Xu. Probably move this to background and have a SGD subsection. Should also discuss ASGD and convergence speed.}
 
-In order to apply \ac{SGD} to our learning problem we define an error function which has the same minimum as (\ref{eq:mse}) but is easier to differentiate and optimize because of its form:
+\section*{Exploratory draft 2}
+
+In this section we present the metric alignment method.
+Metric alignment learns a metric on the feature space that best approximates a given target metric.
+The target metric is a function of the ground-truth output corresponding to the points in feature space and measures the loss for predicting one ouput when the other output would be correct.
+By approximating the target metric in the feature space, we align the feature space to the ground-truth space in which the target metric is measured.
+Hence, the learned metric tries to ensure that points in feature space are predictive of their neighbors with minimal loss.
+
+Like most linear metric learning methods, our method learns a Mahalanobis metric.
+The metric is parameterized by a matrix $\mat{A}$ which determines the form of the metric.
+For simplicity we use the squared form defined as:
 \begin{equation}
-E_{\mathcal{A}}(\mat{A}) =  \sum_{(i,j) \in \mathcal{A}}  \frac{1}{4} \left( d_{ij}^2 - ||\mat{L}(\vec{x}_i - \vec{x}_j)||_2^2 \right )^2.
-\label{eq:opt_target}
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) = (\vec{x}_i - \vec{x}_j)^T \mat{A} (\vec{x}_i - \vec{x}_j)
 \end{equation}
-Here $\vec{x}_i - \vec{x}_j$ is the pairwise difference between two vectors in the input space $\mathcal{X}$ and $d_{ij}^2$ is the squared target distance for this pair of input vectors. $||\mat{L}(\vec{x}_i - \vec{x}_j)||_2^2$ is the squared Euclidean distance in the transformed space which is efficient to compute as the inner product of the transformed difference vector. The constant vector $\frac{1}{4}$ is there only for convenience in differentiation. 
 
-Interpreting the optimization objective as $E_{\mathcal{D}} = \sum_{(i,j)\in\mathcal{D}} E_{ij}$ the corresponding gradient of the error $E_{ij}$ on a single pairwise distance constraint $(i,j) \in \mathcal{D}$ is given by:
-\begin{equation}
-\nabla E_{ij}(\mat{L})  = - \left ( d_{ij}^2 - ||\mat{L}(\vec{x}_i - \vec{x}_j)||_2^2 \right) \mat{L} \mat{C}_{ij},
-\label{eq:opt_grad}
-\end{equation}
-where $\mat{C}_{ij} = (x_i - x_j)(x_i - x_j)^T$ is the outer product of the pairwise difference.
 
-We initialize our transformation as the identity transformation $\mat{L} = \mat{I}$ and then update it at each iteration as:
-\begin{equation}
-\mat{L} \leftarrow \mat{L} - \eta_{t} \nabla E_{ij}(\mat{L}).
-\label{eq:update}
-\end{equation}
-Here $t$ is the iteration number, $\nabla E_{ij}(\mat{L})$ is the gradient computed over the distance constraint for points $(i,j) \in \mathcal{D}$ and $\eta_{t}$ is the learning rate: a gain parameter which controls the step size. The learning rate should decrease and the schedule with which it decreases is important for the convergence speed of the optimization \cite{xu2011towards}. We use the parameterization proposed by \cite{xu2011towards} and calculate $\eta_{t}$ at each timestep $t$ as follows:
-\begin{equation}
-\eta_{t} = \frac{\eta_0}{\left(1+ a \eta_0 t \right)^c}
-\label{eq:eta_update}
-\end{equation}
-For SGD without regularization we set $a = 1$ and we leave the parameter $c$ as a hyper parameter that needs to be tuned. Following \cite{bottou2008tradeoffs} we set $\eta_0$ by optimizing it on the first thousand points in the dataset and selecting the value that reduces loss the most.
+
+
+
 
 
 

@@ -1,0 +1,94 @@
+\section{Metric alignment}
+
+%intuition, align feature space to ground truth space, real-valued ground-truth distances, loss function in structured prediction problems, minimization of prediction error by regression
+Our metric alignment method is based on the intuition that, if the ground truth in our training data has a structure on which we can define a real-valued loss function, we can use this loss function to inform our metric learning.
+Specifically, we learn a metric that minimizes the difference between the distance in feature space and the loss between the corresponding ground-truth output structures.
+The learned metric thus makes distances in feature space predictive of loss in ground-truth space.\footnote{Note that the output structure need not necessarily induce any specific type of space, all we need is a positive, real-valued loss function defined on a large enough sample of pairs from the training set.}
+This predictive power is especially useful when applying nearest neighbor methods to structured prediction problems.
+\todo{Add explanation of structured prediction and structured loss functions in background.}
+
+
+
+\subsection{Target metric}
+
+%target metric, $\hat{d}$ mapping from pairs of indexes to non-negative real number
+The metric alignment method takes as input a \emph{target metric} and a set of \emph{absolute distance constraints}.
+The target metric is a function $\hat{d}$ which assigns a distance to pairs $(i,j)$ of input points.
+For our applications we define the target metric to be equal to the loss $\ell$ for prediction output $\vec{y}_j$ when the correct output is $\vec{y}_i$:
+\begin{equation}
+\hat{d}(i,j) = \ell(\vec{y}_i, \vec{y}_j).
+\end{equation}
+
+%preferably a squared metric function, but non-metric functions can also be approximated
+Although we use the structured loss as target metric, the notion of a target metric is more general than that.
+In fact, the target metric can be any non-negative value as long as it is known for a number of training pairs much larger than the number of dimensions of the feature space.
+It could even be background knowledge provided by hand.
+However, since it will be approximated by a pseudo-metric function, it needs to be non-negative and the approximation will be better for target metrics that themselves are of a pseudo-metric nature.
+
+\subsection{Absolute distance constraints}
+%absolute distance constraints, encode target metric %if target metric is non-symmetric, both directions should be a constraint
+Absolute distance constraints are the equivalent of similarity/dissimilarity constraints that use a target metric instead of upper or lower bounds.
+Absolute distance constraints are given as a set $\mathcal{A}$ of pairs $(i,j) \in \mathcal{A}$, each associated with a ground-truth distance given by the target metric. They are thus defined as follows:
+\begin{align}
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j) &= \hat{d}(i,j) & (i, j) &\in \mathcal{A}.
+\end{align}
+Here $d_{\mat{A}}(\vec{x}_i, \vec{x}_j)$ is the learned metric evaluated on the pair of points in feature space $(\vec{x}_i, \vec{x}_j)$ that corresponds to the pair $(i,j) \in \mathcal{A}$.
+And $\hat{d}(i,j)$ is the value of the target metric corresponding to that pair.
+The set of pairs $\mathcal{A}$ can be sampled in the same way as the set of pairs $\mathcal{S}$ in the case of similarity constraints.
+Note however that if the target metric is non-symmetric, the pairs should be treated as ordered pairs and preferably both $(i,j)$ and $(j,i)$ should be included in the set.
+
+
+
+\subsection{Loss function}
+
+%squared error loss function
+In order to learn a metric from absolute distance constraints we minimize the quadratic prediction error on the target distances given by the constraint. Thus our loss function corresponds to the \acf{MSE} over the training set:
+\begin{equation}
+\text{MSE}_\mathcal{A}(\mat{A}) = \frac{1}{|\mathcal{A}|}\sum_{(i,j) \in \mathcal{A}} \left( \hat{d}_{ij} - d_{\mat{A}}(\vec{x}_i, \vec{x}_j) \right)^2.
+\label{eq:mse}
+\end{equation}
+Minimizing the \ac{MSE} over the training pairs corresponds to minimizing the empirical risk under a quadratic loss function.
+
+
+\subsection{Convex optimization using stochastic gradient descent}
+
+%minimization,  linear transform of input space A = G^T G, solving for G means unconstrained optimization problem, convex for full rank G, large, SGD, gradient, batch gradient, learning rate, parameter selection, convergence speed, ASGD, learning rate, mini-batches, hyper parameters,
+In order to fit the transformation matrix to the training set we use \acf{SGD}. Gradient descent is an iterative first order optimization algorithm that finds a local minimum of an error function. On each iteration it changes the parameters by a small step in the direction opposite to the gradient of the error function with respect to the parameters. Since the negative gradient is the direction of steepest descent, each step leads to a reduction in error. When the error function is defined as a sum of individual errors on examples in a training set, \ac{SGD} is a stochastic version of gradient descent where at each step the gradient is computed on the error of a single example. This does not require a summation over all examples in the training set for each update, which is beneficial when the training set is large. \todo{Highlight benefits of SGD. Discuss small-scale vs large scale learning, relevant papers of Bottou and Xu. Probably move this to background and have a SGD subsection. Should also discuss ASGD and convergence speed.}
+
+In order to apply \ac{SGD} to our learning problem we first define our metric using the decomposition $\mat{A} = \mat{G}^T\mat{G}$ to remove the \ac{PSD} constraint on $\mat{A}$ and turn the problem into a unconstrained optimization problem. Further, we use squared distances to remove the square root to further simplify the gradient derivation. Our distance function is thus defined as:
+\begin{align}
+d_{\mat{A}}(\vec{x}_i, \vec{x}_j)^2 &= (\vec{x}_i - \vec{x}_j)^T \mat{A} (\vec{x}_i - \vec{x}_j) \\
+&= (\vec{x}_i - \vec{x}_j) \mat{G}^T \mat{G} (\vec{x}_i - \vec{x}_j) \\
+&= \|\mat{G}(\vec{x}_i - \vec{x}_j)\|^2
+\end{align}
+We then define an error function which has the same minimum as (\ref{eq:mse}) but is easier to differentiate and optimize because of its form:
+\begin{equation}
+E_{\mathcal{A}}(\mat{G}) =  \sum_{(i,j) \in \mathcal{A}}  \frac{1}{4} \left( \hat{d}(i,j)^2 -  \|\mat{G}(\vec{x}_i - \vec{x}_j)\|^2 \right)^2.
+\label{eq:opt_target}
+\end{equation}
+Here $\vec{x}_i - \vec{x}_j$ is the pairwise difference between two vectors in the input space $\mathcal{X}$ and $\hat{d}(i,j)^2$ is the squared target distance for this pair of input vectors. And $\|\mat{G}(\vec{x}_i - \vec{x}_j)\|^2$ is our learned squared metric, which is efficient to compute as the inner product of the transformed difference vector with itself. The constant vector $\frac{1}{4}$ is there only for convenience in differentiation. 
+
+Interpreting the optimization objective as $E_{\mathcal{A}}(\mat{G}) = \sum_{(i,j)\in\mathcal{A}} E_{ij}(\mat{G})$ the corresponding gradient of the error $E_{ij}$ with respect to $\mat{G}$ on a single pairwise distance constraint $(i,j) \in \mathcal{A}$ is given by:
+\begin{align}
+\nabla E_{ij}(\mat{G})  &= \frac{\delta}{\delta \mat{G}} \frac{1}{4} \left( \hat{d}(i,j)^2 -  \|\mat{G}(\vec{x}_i - \vec{x}_j)\|^2 \right)^2 \\
+&= \frac{1}{2} \left( \hat{d}(i,j)^2 -  \|\mat{G}(\vec{x}_i - \vec{x}_j)\|^2 \right) \frac{\delta}{\delta \mat{G}} \left( \hat{d}(i,j)^2 -  \|\mat{G}(\vec{x}_i - \vec{x}_j)\|^2 \right) \\
+&= -\left( \hat{d}(i,j)^2 -  \|\mat{G}(\vec{x}_i - \vec{x}_j)\|^2\right) \mat{G} (\vec{x}_i - \vec{x}_j)(\vec{x}_i - \vec{x}_j)^T.
+\label{eq:opt_grad}
+\end{align}
+
+We initialize our transformation as the identity transformation $\mat{G} = \mat{I}$ and then update it at each iteration as:
+\begin{equation}
+\mat{G} \leftarrow \mat{G} - \eta_{t} \nabla E_{ij}(\mat{G}).
+\label{eq:update}
+\end{equation}
+Here $t$ is the iteration number, $\nabla E_{ij}(\mat{G})$ is the gradient computed over the distance constraint for points $(i,j) \in \mathcal{A}$ and $\eta_{t}$ is the learning rate: a gain parameter which controls the step size. The learning rate should decrease and the schedule with which it decreases is important for the convergence speed of the optimization \cite{xu2011towards}. We calculate $\eta_{t}$ at each time step $t$ as follows:
+\begin{equation}
+\eta_{t} = \frac{\eta_0}{\left(1+ \eta_0 t \right)},
+\label{eq:eta_update}
+\end{equation}
+where $\eta_0$ is a hyper parameter that we set by 2-fold cross validation on the training set.
+
+\todo{Regularization, (Frobenius norm, lambda), Fixed rank learning (dimension reduction, PCA), mini-batch size}
+
+
+
