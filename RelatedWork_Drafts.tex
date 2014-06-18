@@ -1,94 +1,72 @@
 \section{Related work}
 
-
-%structured prediction, talk about methods like RF which also 
-
-
-\section*{Old snippets}
+\quad
 
 
-\subsection{Supervised metric learning}
-\label{sec:metric_learning}
+\subsection{Linear metric learning}
+
+%this section highlights differences between metric learning and our own work, for survey see Kulis etc.
+There is a large body of work in the metric learning literature, therefore this thesis does not aim to provide a complete overview. Instead, this section highlights the differences between the main metric learning approaches and the work presented in this thesis. Readers looking for a recent survey are directed to \cite{kulis2012metric}, which discusses a wide body of metric learning approaches with reference to their unified model for regularized transformation learning, which we discussed in Section \ref{sec:background_opimization}. Readers looking for a more complete discussion of specific methods are directed to \cite{bellet2013survey} and \cite{yang2006distance}.
+
+
+\subsubsection{Similarity/dissimilarity constraints}
+
+%metric learning methods, mostly based on classification, uses similarity/dissimilarity constraints which can not capture a target metric (important point to explain)
+As discussed in the introduction, most metric learning methods have been formulated in the context of a classification problem. This context determines the type of background knowledge that is available for training the metric. Hence, most popular metric learning methods use similarity/dissimilarity constraints, with pairs of inputs being constrained to be similar if they share the same classification label as output, and dissimilar if their output label differs. \cite{davis2007information, kostinger2012large} Because these methods expect input pairs to be assigned to be either similar or dissimilar, they cannot be applied to a problem where similarity between pairs lies on a continuous scale. In comparison, the method presented in this thesis is specifically designed to align the learned metric to a target metric which can take any value. The method presented in this thesis can thus be applied to both binary similarity as well as continuous similarity.
+
+
+\subsubsection{Relative distance constraints}
+
+%metric learning methods with relative constraints, in theory able to encode target metric, would require a lot of triplets, not as applicable to large datasets, less strict supervision,
+Metric learning methods that use relative distance constraints in the context of ranking problems, such as \cite{schultz2003learning}, are more similar to the work in this thesis since relative constraints can be used to indirectly encode a real-valued target metric. However, since these constraints do not directly encode the target distance they provide less supervision than the absolute distance constraints used by the method described in this thesis. Also, because of the large number of training triplets that would be needed to fully specify a target metric, these methods are less applicable to large datasets than the method presented in this thesis which relies on only a sampling of pairs.
+
+%large margin methods, use relative constraints but in a discriminative fashion
+Relative distance constraints are also used in the large-margin metric learning approach, as exemplified by \cite{weinberger2009distance, frome2007learning}, which has become popular because of good results on classification problems and its similarity to the well-known \ac{SVM} approach. Note however that because of the large-margin formulation these methods still depend on a binary similarity judgements for pairs of training points and are thus not applicable to problems with a real-valued target metric.
+
+
+\subsubsection{Metric learning in structured prediction}
+
+%metric learning for ranking \cite{mcfee2010metric}, learns distance function between query and train point, struct-SVM like solver that tries to satisfy as much of the training rankings as possible, satisfies specific rankings, not target metric (which would be between query and point)
+By aligning the learned distance function to a real-valued loss function, the method described in this thesis is specifically suited for structured prediction problems which are characterized by such a loss function. In\cite{mcfee2010metric} metric learning is also applied in a structured prediction context and makes use of a real-valued loss function. The main differences with the approach described in this thesis is that McFee \& Lanckriet apply their method specifically to ranking problems and use a structural \ac{SVM} approach to learning. Since they specify their ranking problem as finding the best interleaving of relevant and irrelevant points, this method also requires binary similarity judgements. The loss function is only used to find the maximally violated constraints for the cutting-plane algorithm that they use for training. Therefore, this method is not applicable to learning from a target metric instead of from binary similarity judgements. \todo{Rewrite this paragraph since it is sooo messy.}
+
+
+%metric learning methods for structured prediction \cite{guillaumin2009tagprop}, or attribute-based classification \cite{akata2013label}
+%\cite{bellet2013survey} surveys several methods for dealing with structured input data, note that these methods deal with structured input data, while we deal with a regular feature space, but in combination with a target metric derived from structured output data with a continuous loss function, the surveyed metric learning methods still learn from similarity/dissimilarity pairs and are thus not applicable to a target metric
+
+
+\subsubsection{Metric learning as regression}
+
+%metric learning for regression \cite{weinberger2007metric} comes very close to what we do but is specific to the regression problem, \cite{lowe1995similarity} is very similar to that but learns a weighted Euclidean metric instead of full Mahalanobis
+
+
+%\cite{meyer2011regression} formulates a regression method to learn a metric which they apply to similarity constraints and kernel learning, we use the same formulation but apply it to learning from a target metric
 
 
 
-Many machine learning methods depend on pairwise comparisons between object representations. 
+%\subsection{MDS and related techniques}
 
-Euclidean distance does not always correspond with semantic distance or similarity.
+%MDS, supervised and uses a distance matrix to learn the new representation, used primarily for visualisation, transductive learning that does not generalize, while we operate in inductive paradigm and our method can be applied to unseen test points
 
-The aim of metric learning methods is to learn a distance function helpful to the problem.
+%MDS stress functions significantly change the characteristics of the method, while we use only squared prediction error, other stress functions might also be included in our method
 
-%local vs global, supervised vs unsupervised, linear vs non-linear
-
-
-
-\subsubsection{Notation and problem formulation}
+%sammon mapping, isomap, LLE, SNE
 
 
-The problem of metric learning is to learn the parameters for a distance function from training examples.
 
-A metric or distance function is a function $d: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}^{+}$, having metric or semi-metric properties (look these up).
+%\subsection{Representation learning}
 
-The Mahalanobis metric is a linear parametric distance function and is most commonly used in metric learning.
-
-% Linear metrics can be interpreted as a linear transformation on the input space.
-
-% Although some methods learn 
-
-structured prediction, predict complex outputs, sequences or trees, combinatorially many possible outputs, 0-1 loss not applicable, metric 
-
-%need to parameterize the distance function, need some form of training data
-%parametric distance metric: Mahalanobis distance, changing the matrix $M$ changes the distance metric, we can learn $M$ such that the distance satisfies our constraints
-%Suppose we have a pair of vectors $\vec{x}, \vec{y} \in \mathbb{R}^D$
-%\begin{equation}
-%d_{M}(\vec{x},\vec{y}) = \sqrt{(\vec{x}-\vec{y})^{T} \mat{M} (\vec{x}-\vec{y})}
-%\label{eq:mahalanobis_distance}
-%\end{equation}
-%metric: identity of indiscernibles: d(x,y) = 0 => x = y, symmetric: d(x,y) = d(y,x), non-negative: d(x,y) >= 0, sub-additive (triangle inequality): d(x,y) + d(y,z) >= d(x,z)
-%pseudo: relaxes identity of indiscernibles to: d(x,x) = 0, meaning that there might be y not equal to x such that d(x,y) = 0
-%Mahalanobis distance is pseudo-metric if $M$ is positive semi-definite and metric if $M$ is positive definite
-%Linear metric, can be rewritten as linear transformation of the input space, comes in handy for nearest neighbor retrieval since we can still use Euclidean distance between transformed points
-%rewrite $M = L^T L$, learn L, M is always PSD and the metric thus a pseudo metric, L is a linear transformation of the feature space such that Euclidean norm of transformed difference vector (or difference between transformed vectors) corresponds to $d_M$
-%\begin{equation}
-%d_{M}(\vec{x},\vec{y}) = ||\mat{L}(\vec{x}_{i}-\vec{y}_{i})||
-%\label{eq:mahalanobis_transformation}
-%\end{equation}
-%$||\mat{L}(\vec{x}_{i}-\vec{y}_{i})|| = ||\mat{L}\vec{x}_{i}-\mat{L}\vec{y}_{i}||$
+%representation learning, unsupervised, focusses on properties of the learned representation such as meaningfulness, invariance, etc, but not on distances
 
 
-\subsubsection{Learning from equivalence constraints}
 
-Suppose we have a problem with discrete labels for the examples, for classification or clustering we would like distances between examples to be small if their labels are the same and large otherwise.
+%\subsection{Kernel learning}
 
-\todo{Describe these methods (related work)}
-
-%suppose we have a problem with input space $\mathcal{X} \subseteq \mathbb{R}^n$ and as output discrete class labels $\mathcal{Y} = {1, 2, ..., C}$. Then we want distance to be small iff labels are the same. kNN example, clustering example
-%training set: subsets or pairs of objects which are similar. Many methods also use dissimilarity information: subsets or pairs of objects which are dissimiilar.
-%try to make within-class variance small, difference between different classes large
-%very applicable for classification tasks, but not so much for non-binary task such as those with a structured loss function, have to select some arbitrary cut-off for similarity or dissimilarity
-
-The \acf{ITML} method \cite{davis2007information} considers similarity constraints of the form $d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{j}) \leq u$ and dissimilarity constraints of the form $d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{k}) \geq \ell$, where $u$ and $\ell$ are numeric upper and lower bounds on the distance between similar points pairs $\vec{x}_{i}, \vec{x}_{j}$ and dissimilar point pairs $\vec{x}_{i}, \vec{x}_{k}$. A matrix $\mat{M}$ is learned that satisfies these constraints while minimizing LogDet divergence between an input matrix $\mat{M}_0$ and $\mat{M}$.
+%structured prediction methods with kernels generally use fixed kernels, in kernel learning either the parameters of a fixed kernel are learned or a kernel matrix in a transductive setting is learned, while we learn a full metric directly on the input space
 
 
-\subsubsection{Learning from ranking constraints}
 
-Suppose we have a problem without discrete labels but in which we try to find the most similar examples, we would like the distance to a similar example to be smaller than the distance to a less similar example.
-$d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{j}) + 1 \leq d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{k})$
+%\subsection{Instance-based structured prediction}
 
-$d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{j}) < d_{\mat{M}}(\vec{x}_{i}, \vec{x}_{k})$
+%structured random forest \cite{kontschieder2011structured}, trees work as a nearest neighbor index, put examples close together if he have small entropy in labels, however uses distinct labels for entropy, while we use the target metric between the whole structured output which is also applicable to other structured problems that do not have distinct labels
 
-\subsubsection{Learning from distance constraints}
-
-Metric learning method generally don't do this, however MDS and visualization methods seem related in that they learn from pairwise distance matrix
-
-\subsection{Nearest neighbor classification}
-
-\subsection{Semantic segmentation}
-
-%training set: ranking or triples of objects for which one is closer to the other
-%try to satisfy as many of these constraints as possible
-
-
-\subsection{SGD}
- \cite{rakhlin2012making} ASGD with suffix averaging is O(1/T) \cite{bottou2010large} ASGD or SGDQN is good for large scale problems \cite{bottou2008tradeoffs} SGD algorithms work surprisingly well in large scale learning \cite{xu2011towards} ASGD with specific parameters is optimal
-
+%kernels for structured prediction SVM
