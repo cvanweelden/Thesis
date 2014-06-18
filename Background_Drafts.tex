@@ -93,8 +93,9 @@ Distance constraints are generated from the ground truth in the training set. Fo
 
 
 \subsection{Optimization and regularization}
+\label{sec:background_opimization}
 
-While most linear metric learning methods use the same parametrize the distance function in the same way, as a Mahalanobis metric defined by (\ref{eq:linearmetric}), they differ in the way that they optimize the parameter matrix $\mat{A}$.
+While most linear metric learning methods parametrize the distance function in the same way, as a Mahalanobis metric defined by (\ref{eq:linearmetric}), they differ in the way that they optimize the parameter matrix $\mat{A}$.
 
 In \cite{kulis2012metric} the author present a general formulation of the metric learning problem that encompasses most metric learning methods. The problem consists of minimizing a loss function that includes a cost term and a regularization term and is given by:
 \begin{equation}
