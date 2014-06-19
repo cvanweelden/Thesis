@@ -10,7 +10,6 @@
 \usepackage{mathtools}
 \usepackage{float}
 \usepackage{acronym}
-\usepackage{cite}
 \usepackage{url}
 \usepackage[usenames, pdftex]{color}
 \usepackage{soul}
@@ -22,6 +21,10 @@
 \usepackage{algorithm}
 \usepackage{wrapfig}
 \usepackage{lipsum}
+\usepackage{cite}
+%\usepackage[round]{natbib}
+
+%\renewcommand{\cite}{\citep}
 
 %\newenvironment{textbox}{\medskip \begin{mdframed}}{\end{mdframed} \medskip}
 
@@ -73,6 +76,7 @@
 \include{RelatedWork_Drafts}
 
 \bibliographystyle{apalike}
+%\bibliographystyle{plainnat}
 \bibliography{Thesis}
 
 \end{document}
