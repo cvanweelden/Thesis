@@ -1,4 +1,4 @@
-\section{Metric alignment}
+\chapter{Metric alignment}
 
 %intuition, align feature space to ground truth space, real-valued ground-truth distances, loss function in structured prediction problems, minimization of prediction error by regression
 Our metric alignment method is based on the intuition that, if the ground truth in our training data has a structure on which we can define a real-valued loss function, we can use this loss function to inform our metric learning.
@@ -9,7 +9,7 @@ This predictive power is especially useful when applying nearest neighbor method
 
 
 
-\subsection{Target metric}
+\section{Target metric}
 
 %target metric, $\hat{d}$ mapping from pairs of indexes to non-negative real number
 The metric alignment method takes as input a \emph{target metric} and a set of \emph{absolute distance constraints}.
@@ -25,7 +25,7 @@ In fact, the target metric can be any non-negative value as long as it is known 
 It could even be background knowledge provided by hand.
 However, since it will be approximated by a pseudo-metric function, it needs to be non-negative and the approximation will be better for target metrics that themselves are of a pseudo-metric nature.
 
-\subsection{Absolute distance constraints}
+\section{Absolute distance constraints}
 %absolute distance constraints, encode target metric %if target metric is non-symmetric, both directions should be a constraint
 Absolute distance constraints are the equivalent of similarity/dissimilarity constraints that use a target metric instead of upper or lower bounds.
 Absolute distance constraints are given as a set $\mathcal{A}$ of pairs $(i,j) \in \mathcal{A}$, each associated with a ground-truth distance given by the target metric. They are thus defined as follows:
@@ -39,7 +39,7 @@ Note however that if the target metric is non-symmetric, the pairs should be tre
 
 
 
-\subsection{Loss function}
+\section{Loss function}
 
 %squared error loss function
 In order to learn a metric from absolute distance constraints we minimize the quadratic prediction error on the target distances given by the constraint. Thus our loss function corresponds to the \acf{MSE} over the training set:
@@ -50,7 +50,7 @@ In order to learn a metric from absolute distance constraints we minimize the qu
 Minimizing the \ac{MSE} over the training pairs corresponds to minimizing the empirical risk under a quadratic loss function.
 
 
-\subsection{Convex optimization using stochastic gradient descent}
+\section{Convex optimization using stochastic gradient descent}
 
 %minimization,  linear transform of input space A = G^T G, solving for G means unconstrained optimization problem, convex for full rank G, large, SGD, gradient, batch gradient, learning rate, parameter selection, convergence speed, ASGD, learning rate, mini-batches, hyper parameters,
 In order to fit the transformation matrix to the training set we use \acf{SGD}. Gradient descent is an iterative first order optimization algorithm that finds a local minimum of an error function. On each iteration it changes the parameters by a small step in the direction opposite to the gradient of the error function with respect to the parameters. Since the negative gradient is the direction of steepest descent, each step leads to a reduction in error. When the error function is defined as a sum of individual errors on examples in a training set, \ac{SGD} is a stochastic version of gradient descent where at each step the gradient is computed on the error of a single example. This does not require a summation over all examples in the training set for each update, which is beneficial when the training set is large. \todo{Highlight benefits of SGD. Discuss small-scale vs large scale learning, relevant papers of Bottou and Xu. Probably move this to background and have a SGD subsection. Should also discuss ASGD and convergence speed.}

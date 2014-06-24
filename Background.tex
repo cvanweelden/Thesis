@@ -1,4 +1,4 @@
-\section{Background}
+\chapter{Background}
 
 
 %learning problems notation, \mathcal{X}, vectors in Euclidean space
@@ -24,7 +24,7 @@ Training points are assumed to be $d$-dimensional real-valued feature vectors in
 
 
 
-\subsection{Linear distance functions}
+\section{Linear distance functions}
 
 The goal of metric learning is to learn a distance function in the feature space. A distance function, or metric, is a function $d: \mathcal{X} \times \mathcal{X} \rightarrow \mathbb{R}^{+}$ having the following properties:
 \begin{subequations}
@@ -70,7 +70,7 @@ We can graphically represent a linear distance function as an ellipsoid in the o
 
 
 
-\subsection{Constraints}
+\section{Constraints}
 \label{sec:background_constraints}
 
 Metric learning methods require supervision in the form of constraints on the learned distance. When objects can easily be judged to be either similar or dissimilar, these can be given as a set of similarity/dissimilarity constraints. This is given as a set $\mathcal{S}$ of pairs $(i, j)$ that are similar and a set $\mathcal{D}$ of pairs that are dissimilar. These constraints have the following form:
@@ -92,7 +92,7 @@ Distance constraints are generated from the ground truth in the training set. Fo
 
 
 
-\subsection{Optimization and regularization}
+\section{Optimization and regularization}
 \label{sec:background_opimization}
 
 While most linear metric learning methods parametrize the distance function in the same way, as a Mahalanobis metric defined by (\ref{eq:linearmetric}), they differ in the way that they optimize the parameter matrix $\mat{A}$.

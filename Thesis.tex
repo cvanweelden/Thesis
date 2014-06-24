@@ -1,4 +1,4 @@
-\documentclass[a4paper,titlepage]{article}
+\documentclass[a4paper]{report}
 \usepackage{listings}
 \usepackage{graphicx}
 \usepackage[font=small,labelfont=bf]{caption}
@@ -10,7 +10,6 @@
 \usepackage{mathtools}
 \usepackage{float}
 \usepackage{acronym}
-\usepackage{cite}
 \usepackage{url}
 \usepackage[usenames, pdftex]{color}
 \usepackage{soul}
@@ -22,6 +21,8 @@
 \usepackage{algorithm}
 \usepackage{wrapfig}
 \usepackage{lipsum}
+\usepackage{cite}
+
 
 %\newenvironment{textbox}{\medskip \begin{mdframed}}{\end{mdframed} \medskip}
 
@@ -57,9 +58,9 @@
 %\title{Metric alignment}
 %\title{Aligning metric to a distance function in an unknown space.}
 %\title{Metric alignment: learning distance functions that linearly approximate arbitrary similarity measures.}
-%\title{Metric alignment: linear approximation of arbitrary similarity measures.}
-\title{Metric alignment: metric learning with absolute distance constraints.}
-%\title{Metric alignment: metric learning using absolute distance constraints with an application to structered prediction.}
+\title{Metric alignment: linear approximation of arbitrary similarity measures.}
+%\title{Metric alignment: metric learning for structured prediction problems using absolute distance constraints.}
+%\title{}
 %\title{}
 %\title{}
 
@@ -75,11 +76,7 @@
 
 \end{abstract}
 
-\pagebreak
-
 \tableofcontents
-
-\pagebreak
 
 
 %Boxes to write:
@@ -105,299 +102,18 @@
 
 \include{Introduction}
 
+\include{Background}
 
-\include{Background_Drafts}
-
-\include{RelatedWork_Drafts}
+\include{RelatedWork}
 
 \include{Method}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% EXPERIMENTS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{Experiments}
 
+\include{Conclusions}
 
-\section{Results}
-
-To evaluate metric alignment we need a dataset for which a real-valued target metric is defined. We took our testing data from a semantic segmentation benchmark. Semantic segmentation is a computer vision problem in which the objective is to segment input images into contiguous regions by assigning labels to each pixel from a predefined set of class labels. 
-
-
-Segmentation benchmarks consist of images $\mat{I}$ where each pixel $\mat{I}_{(i,j)}$ is usually given as a triple $(r,g,b)$ denoting the color of a single pixel and segmentations $\mat{S}$ of which each element  $\mat{S}_{(i,j)} \in \mathcal{L}$ assigns a label to pixel $\mat{I}_{(i,j)}$ of the image. Here $\mathcal{L} = \{1, 2, \ldots, n\}$ is a pre-determined label set  where each label corresponds to one of $n$ visual classes. For our dataset we extract square patches from the images and the corresponding segmentations.
-
-
-\begin{equation}
-L(\vec{y}, \vec{y}^\prime) = 1 - \frac{\sum_{i,j} \left [ y_{i,j} = y^\prime_{i,j}\right]}{\sum_{i,j} \left [y_{i,j}, y^\prime_{i,j} \in \mathcal{L}\right ]}.
-\label{eq:patch_loss}
-\end{equation}
-
-
-
-\section{Application to semantic segmentation}
-
-
-
-
-%semantic segmentation, per-pixel classification, apply \ac{kNN} to image patches, patch has feature descriptor and label patch, labels correspond to object classes, loss is distance in label space, align feature space to label space, improved segmentation accuracy
-
-%semantic segmentation, challenging problem, combines object recognition and image segmentation, applications in image understanding, image retrieval
-Semantic segmentation is a challenging problem that combines object recognition and image segmentation, with applications in image understanding and image retrieval. The objective is to segment input images into contiguous regions by assigning labels to each pixel from a predefined set of class labels, in effect performing a per-pixel classification of the image. Figure \ref{fig:segmentation_examples} shows some example input and output for the semantic segmentation task and we give a more formal description below.
-
-\begin{quotation}
-\subsubsection*{Semantic segmentation problem.}
-
-\paragraph{Input:} An image $\mat{I}$ where each pixel $\mat{I}_{(i,j)}$ is usually given as a triple $(r,g,b)$ denoting the color of a single pixel. And a label set $\mathcal{L} = \{1, 2, \ldots, n\}$ where each label corresponds to one of $n$ pre-determined object classes.
-
-\paragraph{Output:} A segmentation image $\mat{S}$ of which each element  $\mat{S}_{(i,j)} \in \mathcal{L}$ assigns a label to pixel $\mat{I}_{(i,j)}$ of the image.
-
-\paragraph{Learning problem:} given a set of training images $\mathcal{I}_\textsc{train} \subset \mathcal{I}$ with the corresponding ground truth segmentations $\mathcal{S}_\textsc{train} \subset \mathcal{S}$ and a loss function $L: \mathcal{S} \times \mathcal{S} \rightarrow \mathbb{R}$, learn a function $h(\mat{I}) = \mat{S}$ that minimizes this loss over unseen images. %\todo{...minimizes this loss over true distribution of images.}
-\end{quotation}
-
-
-Because the output consists of a 2-dimensional label array this is a structured prediction problem. We solve this problem by combining \ac{kNN} classification with metric alignment. First we divide images into overlapping patches and compute a feature vector for each patch. We use metric alignment to learn a transformation of these feature vectors that aligns distances in feature space with loss in label space. Then we classify each patch using structured \ac{kNN} classification.
-
-\begin{figure}[tbh]
-\begin{center}
-\missingfigure{Top row: image from MSRC, VOC, CamVid. Bottom row: corresponding segmentations.}
-\caption{Some examples of the semantic segmentation task. Top row: input images from the MSRC, Pascal VOC, and CamVid benchmarks. Bottom row: the manual segmentations corresponding to the input images. Each color denotes a different object class. Note the difference in annotation style between the benchmarks.}
-\label{fig:segmentation_examples}
-\end{center}
-\end{figure}
-
-% common approaches, structured learning CRF, tree ensembles with context features, segmentation with object detectors, clustering
-%The main challenges in semantic segmentation are a combination of the challenges found in object recognition, image segmentation, and structured prediction. Like in object recognition there is high variance in appearance, orientation and shape of objects belonging to object classes of interest. However, since single pixels have to be labeled, there is less information available for making a labeling decision. Semantic segmentation methods solve this either by pre-segmenting the image into superpixels or larger segment hypotheses such that evidence, e.g. object recognition response, can be accumulated over a larger area, or by using features which aggregate information about a larger area around the pixel, its context. Like in structured prediction problems, maintaining consistency between predicted labels is also an important challenge. Because of this, many semantic segmentation methods use a \ac{HCRF} approach which allows the penalization of inconsistency on multiple levels unless there is strong evidence for non-continuity in the labeling.\todo{Give some global background describing challenges of segmentation (much variance in appearance and shape, label consistency, finding correct scales for segmentation) and the main approaches to solving them (HCRF, superpixels, SVM, which differ by benchmark).}\todo{Segmentation box? Show different segmentation tasks and talk about basic methods like superpixels and clustering methods?}
-
-\subsection{Structured \acl{kNN} segmentation}
-
-%segmentation with kNN, kNN is simple, requires little parameter tuning, and is applicable to multi-class problems, 
-Our segmentation method is based on \acf{kNN} classification. \ac{kNN} is a non-parametric classification method, which means that its decision function is not characterized by a parameterized model. Instead, the class for an input point is decided to be the majority class amongst the most similar points in the training set, the nearest neighbors. Although it requires storing of the whole training set, which may become problematic for large sets, the \ac{kNN} classification method is simple, requires little parameter tuning and is inherently applicable to multi-class problems. \todo{Box: the k-nearest neighbor classification?}
-
-%we use a simple generalization to structured prediction, this is patch based, find nearest patches and interpolate each label of the patch independently
-We generalize \ac{kNN} to the case of structured prediction by applying it to structured label patches. %, following the idea in \cite{kontschieder2011structured} of generalizing random forests to use structured label patches. 
-We define a structured output space $\mathcal{Y} = \mathcal{L}^{d \times d}$ consisting of label patches $\vec{y}$ whose elements $y_{ij} \in \mathcal{L}$ each consist of one of the pre-determined class labels. When predicting the label patch $\hat{\vec{y}}$ for a given input vector we look up the label patches $\mathcal{Y}_\textsc{nn}$ of the $k$ nearest neighbor vectors  and interpolate each label position independently based on the labels at the same position $(i,j)$ of the nearest neighbor patches:
-\begin{equation}
-\hat{y}_{ij} = \argmax_{\ell \in \mathcal{L}} \sum_{\vec{y} \in \mathcal{Y}_\textsc{nn}} \left[ y_{ij} = \ell \right ].
-\label{eq:nn_decision_rule}
-\end{equation}
-Here $\hat{y}_{ij}$ is the pixel at position $(i,j)$ of the output patch $\hat{\vec{y}}$ and $\left [\ \cdot \ \right ]$ denotes the Iverson bracket which is equal to 1 if the enclosed statement is true and 0 otherwise. This computation corresponds to letting each pixel of each neighbor patch vote on the class of the corresponding output pixel and then taking the most voted class for that output pixel.
-
-\begin{figure}[tbh]
-\begin{center}
-\missingfigure{Figure explaining searching for nearest neighbor vectors in feature space and patch creation from neighbor patches according to equation \ref{eq:nn_decision_rule}}
-\caption{Schematic overview of the \ac{kNN} algorithm with structured label patches. }
-\label{fig:knn_segmentation}
-\end{center}
-\end{figure}
-
-%for each of the training images extract $d \times d$ image patches from $I$ on regular grid $(\vec{u}, \vec{v})$, compute array of image features $X = \left [ \vec{x}_1, \vec{x}_2, \ldots, \vec{x}_p \right ]$ with $\vec{x}_i$ computed from the image patch centered on image coordinates $(u_i, v_i)$, use SIFT and CSIFT features, also extract label patches from the corresponding image labeling $L$ such that label patch  $\vec{y}_i$ corresponds to the $d' \times d'$ label patch around $(u_i, v_i)$, store these coordinates and create index for the features such that we can efficiently find the closest points
-From each training image $\mat{I}$ we extract feature vectors $\mathcal{X}_\mat{I} = \left\{ \vec{x}_1, \vec{x}_2, \ldots, \vec{x}_p \right\}$ on a regular hexagonal grid $(\vec{u}, \vec{v})$, with $\vec{x}_i$ computed from the $d^\prime \times d^\prime$ image area centered on image coordinates $(u_i, v_i)$. Each of these feature vectors $\vec{x}_i$ is paired to a label patch $\vec{y}_i$ of size $d \times d$ taken from the training annotation for the image and centered at $(u_i, v_i)$. Note that the size $d$ for the label patch and $d^\prime$ for the feature patch can be different. Specifically, $d^\prime$ is dependent on the scale of the image features while $d$ is a hyper-parameter that we set. For convenience we define these patches to have the origin $y_{0,0}$ in the center of the patch, such that the subscripts $i$ and $j$ run from $-\tfrac{d}{2}$ to $\tfrac{d}{2}$. Together these feature vectors form a training set $\mathcal{X}_\textsc{train} = \bigcup\left\{\mathcal{X}_\mat{I}: \mat{I} \in \mathcal{I}_\textsc{train} \right\}$ We store all the training vectors and label patches and we create a randomized kd-trees index for the feature vectors using FLANN \cite{muja2009fast} such that we can efficiently find the closest points from this set given an input vector.
-
-%for each test image, again compute features for each patch, for each feature find the closest patch in the training set, extract label patch from the same area, merge overlapping label patches to create the output labeling
-For each test image $\mat{I}$ we again extract feature vectors $\mathcal{X}_\mat{I}$ on the grid $(\vec{u}, \vec{v})$. For each of these feature vectors we search for the nearest neighbors amongst the training vectors and their associated label patches. From these we then generate the hypothesis patches as per (\ref{eq:nn_decision_rule}) giving us a label patch centered at each grid point $(u_i, v_i)$. These hypothesis patches are partially overlapping. Thus for each pixel in the image we select the most voted class among the positions in patches that overlap that pixel, similar to (\ref{eq:nn_decision_rule}).
-
-%\begin{algorithm}
-%\caption{The structured k-nearest neighbor algorithm for label patches.}
-%\label{alg:structured_kNN}
-%\begin{algorithmic}[1]
-%\REQUIRE  $\mat{X}_\textsc{train}$, $\mat{Y}_\textsc{train}$, $\mat{X}_\mat{I}$ 
-%\ENSURE $S = h(\mat{I})$
-%\STATE TODO: give clear pseudocode
-%\end{algorithmic}
-%\end{algorithm}
-
-\subsection{Aligning distances in feature space to loss}
-
-%effectiveness of \ac{kNN} method highly dependent on representation function, meaning close in feature space has to align with semantically close, if appearance and semantics are not aligned this will lead to wrong prediction based on nearest neighbors
-The effectiveness of the structured \ac{kNN} method described above is dependent on both the representation function and the distance function. The  distance function defines the way in which distances are measured in feature space, while the representation function defines the feature space. In order to be effective, our method needs semantically similar points to lay close together in feature space, with `semantically similar' meaning that the corresponding label patches have a large overlap.
-
-%use metric alignment to learn feature transform, label patches, loss defines distance in label space, we want small distance to mean small loss
-The naive approach is to use Euclidean distance as a default and then to search for features which make similar patches lie close together. However, it is very difficult to engineer such an image feature. Instead, we will use existing features which have been applied in many image classification tasks and use the metric alignment method described in section \ref{metric_regression} to learn a distance metric which makes distance between feature vectors predictive of loss between the corresponding labels. We define this loss as a continuous function $L: \mathcal{Y} \times \mathcal{Y} \rightarrow \mathbb{R}$ with range $[0,1]$ which gives us an inverse of the overlap between label patches:
-\begin{equation}
-L(\vec{y}, \vec{y}^\prime) = 1 - \frac{\sum_{i,j} \left [ y_{i,j} = y^\prime_{i,j}\right]}{\sum_{i,j} \left [y_{i,j}, y^\prime_{i,j} \in \mathcal{L}\right ]}.
-\label{eq:patch_loss}
-\end{equation}
-Here $L(\vec{y}, \vec{y}^\prime)$ is the loss for predicting patch $\vec{y}^\prime$ for patch $\vec{y}$. This loss counts the positions that have been assigned the same label in both patches as a fraction of the positions that been assigned a label in both patches, since some positions are not assigned a label during annotation. Since the overlap is a similarity measure, we turn it into a distance measure by subtracting it from 1. By training the distance metric on this pairwise loss, we try to align the feature space to the label space in such a way that when we search for nearest neighbors in feature space we will find neighbors that have label patches that are close to the correct label patch for the input feature vector.
-
-
-%%%%
-%%%%
-%%%%
-
-
-\subsection{Experimental setup}
-
-%We evaluate our method by applying our segmentation pipeline to benchmark problems with Euclidean distance and with distance metric learned by our metric alignment method.
-%learning to rank, LMNN, RF (Kontschieder et al.)
-To evaluate our method we perform an experiment using two semantic segmentation benchmarks. In this experiment we apply the \ac{kNN} segmentation method described above using a distance function learned by applying metric alignment on the training data. We compare this against the result of applying the \ac{kNN} method using standard Euclidean distance.
-
-%We compare our method against two baseline large-margin metric learning methods: LMNN \cite{weinberger2009distance} which learns from discrete examples and \cite{schultz2003learning}
-Besides the Euclidean baseline we also compare against two alternative metric learning methods, both of which use a large margin approach to metric learning. First against \ac{LMNN} \cite{weinberger2009distance}, described in section \ref{discrete_metrics}, and secondly against \cite{schultz2003learning}, described in section \ref{ranking_metrics}. We use \ac{LMNN} as a baseline because it is a well tested method designed specifically to improve \ac{kNN} classification results. The second method was chosen because it is similar in spirit to our own approach in that it learns from relative comparisons, but it is different in practice since it uses qualitative training data while metric alignment uses quantitative data.
-
-%We evaluate both the accuracy of the learned metrics on pairwise differences and the effect of the metric learning on the segmentation task using our \ac{kNN} segmentation method.
-To compare the different methods in this experiment we look at how well the distance function between image patches approximates the label distance as measured by \ac{MSE} as well as the overall increase in segmentation accuracy as measured by the benchmark evaluation measures.
-
-
-
-\subsubsection{Datasets}
-
-%We evaluate our method on the MSRC and VOC segmentation datasets; two benchmarks in semantic segmentation.
-To evaluate our methods we use two datasets of images which have been manually segmented into  \footnote{\url{http://research.microsoft.com/en-us/projects/objectclassrecognition/}}
-
-The MSRC set consists of a small number of images, loosely segmented into 21 classes. covering most of each image with little variation in appearance and scene.
-
-Camvid dataset
-
-The VOC set consists of a large number of images with strict segmentation into 20 foreground classes and an aggregate background class with much variation in appearance. %Object detection challenge, hence background class, but this is challenging for segmentation methods because you have to decide what not to segment.
-
-Difference in annotation styles, MSRC is loosely segmented while the Camvid and VOC are close to pixel-perfect. VOC generally has one or a few foreground objects segmented while the rest is grouped as background, while MSRC and CamVid are fully segmented with background classes being labeled, e.g. `grass', `street'. See figure \ref{segmentation_examples}.
-
-VOC is more challenging than MSRC and CamVid on both effectiveness and sheer size.
-
-
-\subsubsection{Implementation}
-
-We use SIFT and C-SIFT image descriptors as feature vectors extracted using the ColorDescriptor software. \cite{sande2011empowering} We then index these training vectors using the multiple kd-tree method from the FLANN library \cite{muja2009fast}, which allows us to efficiently calculate nearest neighbors amongst these points given an input vector.
-
-\todo{Box: image descriptors?}
-
-\subsubsection{Training and parameter selection}
-
-We divide the dataset into non-overlapping training and testing images. 
-
-
-extract training pairs from training images, note: can't use all patch pairs because this are intractably many, we use a set of randomly selected points and their k-nearest neighbors
-
-train on feature vectors and pairwise loss, compute gradient over the neighborhood set at each step
-
-\todo{Explain tuning.}
-
-
-
-
-
-
-\subsubsection{Evaluation}
-
-
-
-We measure the \ac{MSE} between the label distance and the learned nearest-neighbor on a sample of testing pairs
-
-%nearest neighbor MSE histogram?
-
-we evaluate global pixel accuracy and average class pixel accuracy as well as the intersection over union measure used in the pascal VOC dataset
-
-we show per patch results for different numbers of neighbors 
-
-plot of label distance vs learned metric distance, both normalized\
-
-plot of segmentation accuracy as a function of neighbors?
-
-plot of distance to closest ground-truth patch?
-
-
-
-
-
-%%%%
-%%%%	
-%%%%
-
-
-
-
-
-
-
-
-\subsection{Results}
-
-%Training curve with MSE on training pairs
-
-%MSE on patch overlap for testing pairs
-
-%effect on segmentation score
-
-%effect of features and dimension reduction on learnability
-
-%effect of parameters for minimization, not all training schemes seem to work
-
-
-
-
-
-We show that learning a simple linear transformation improves alignment between pairwise Euclidean distance in feature space and pairwise loss, which improves overall segmentation accuracy.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% CONCLUSIONS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\pagebreak
-\section{Conclusions}
-
-%list the specific cases/requirements in which this is useful (see intro)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-\bibliographystyle{plain}
+\bibliographystyle{apalike}
+%\bibliographystyle{plainnat}
 \bibliography{Thesis}
 
-
-%\appendix
-%\section{Glossary}
-
-%\begin{description}
-%\item[Similarity measure] A measurement of the similarity between two objects. 
-%\item[Distance function] A function which maps pairs of points in some space to a positive real number or zero.
-%\item[Metric] See \emph{distance function}.
-%\item[Metric transformation] A linear transformation of a feature space for which it holds that Euclidean distances in the transformed space correspond to a specified distance function on the original space. 
-%\end{description}
-
-\end{document}  
+\end{document}
