@@ -1,29 +1,36 @@
 \chapter{Experiments and results}
 
 
+%evaluate metric alignment method, need datasets with a target metric, developed for structered prediction problems where the loss function is a target metric
+In order to evaluate the metric alignment method we use two datasets from structured prediction problems. The first dataset comes from an attribute-based classification problem, while the second comes from a semantic segmentation problem. Both these datasets have the property that there is a well-defined real-valued loss defined on the structured output space. This property allows us to test the idea of aligning the feature space to the output space through metric alignment. 
+
+%have to formulate a learning task that tests the metric learning component seperately and the improvement of prediction with metric learning, we present two datasets that can test both these aspects
+There are two things that we want to test with these datasets. Firstly, how well does the metric learned method described in this thesis approximate the target metric. In other words, how well does the method align feature space to the structured output space? This can be measured by the \acf{MSE} between the learned distances in feature space and the loss in output space for the points in the test set. The second result we want to evaluate is how much the learned metric improves performance over the default Euclidean metric on the overall classification/segmentation task. We do this by applying a \ac{kNN} classifier adapted to solve these structured problems and performance is measured by a task-specific loss function.
 
 \section{Datasets}
 %datasets, learning problems, features, ground-truth, loss functions, classes, number of instances, training/test split
 
-%evaluate metric alignment method, need datasets with a target metric, developed for structered prediction problems where the loss function is a target metric
-
-%have to formulate a learning task that tests the metric learning component seperately and the improvement of prediction with metric learning, we present two datasets that can test both these aspects
-
 
 \subsection{Attribute-based classification dataset}
 
-%attribute based classification is an approach to classification in which classes are described by high-level "semantic" attributes, 
+%attribute based classification is an approach to classification in which classes are described by high-level "semantic" attributes, zero shot task, classes uniquely identified by their attributes
+Attribute-based classification is an approach to object recognition which can be applied to problems where there is no training data for the test categories. This problem is known as zero-shot or zero-data learning. In attribute-based classification, classes are described by high-level ``semantic'' attributes. These attributes are properties of an object for which a human can decide whether this property applies to the object. In this way, previously unseen classes can be described by its attributes. By learning the connection between visual features and attributes a classifier can correctly classify members of these unseen classes. 
+
+For our evaluation we use the \acf{AwA} dataset\footnote{Available at \url{http://attributes.kyb.tuebingen.mpg.de/}.} described in \cite{lampert2009learning, lampert2014attribute}. This dataset contains images of 50 different species of mammals. A set of 85 semantic attributes describes each class and the class-attributes table is available in both a continuous-valued matrix as well as a binary one obtained by thresholding at the mean value. Pre-computed features are also available for this dataset and we make use of those.
+\todo{Tables of animals and attributes. Example images.}
 
 %predicting the attributes can be seen as a simple structured prediction problem, with Hamming distance as a loss function on binary attribute vectors
+Lampert et al. describe two different approaches to the attribute based classification: \emph{direct attribute prediction} and \emph{indirect attribute prediction}. For simplicity we will constrain ourselves to the direct attribute prediction method. In this method the learning problem is to learn to predict the attribute vector from the visual features. This problem can be seen as a structured prediction problem in which the output space is a continuous or binary vector space. The natural choice for a loss function in these structured output spaces would be the Euclidean distance and Hamming distance respectively. However, the original attribute-based classification problem does not have the attribute vector itself as output, but the classification which deterministically follows from the predicted attribute values. Hence, the original problems uses more traditional loss measure of normalized multi-class accuracy and area under the ROC curve.
 
 %we propose two learning task on this dataset, the full zero-shot learning task for which the dataset was originally presented and a simpler metric learning task in which the objective is to correctly predict the hamming distance between attributes of two input images
 
-\cite{lampert2009learning, lampert2014attribute}
+
 
 
 \subsection{Semantic segmentation dataset}
 
 %semantic segmentation is the problem of predicting a per-pixel labeling of an image, where the labels are taken from a fixed set of object classes
+Semantic segmentation is a computer vision problem in which the objective is to segment input images into contiguous regions by assigning labels to each pixel from a predefined set of class labels. 
 
 %patches are extracted that are each described by a single (color)SIFT vector, visually similar patches are close together in feature space, we want semantically similar patches to be close together in feature space, semantic difference is measured by segmentation loss function, we train with segmenation loss function as target metric, learns small distance for large semantic similarity
 
@@ -33,7 +40,7 @@
 
 
 
-\section{Experiments}
+%\section{Experiments}
 %description of experiments, evaluation measures, baselines, parameter settings, conversion of loss to target metric, sampling of constraints, number of repeats with random splits
 
 %for our experiments we run metric alignment on the datasets described above and compare this against a baseline euclidean measure
@@ -42,6 +49,26 @@
 
 %parameters for the methods are set by 2-fold cross-validation on the training set
 
+
+\section{Attribute-based classification experiment}
+
+\subsection{Feature extraction}
+
+\subsection{Adapted \ac{kNN} classifier}
+
+\subsection{Parameter settings}
+
+\subsection{Evaluation measures}
+
+\section{Semantic segmentation experiment}
+
+\subsection{Feature extraction}
+
+\subsection{Adapted \ac{kNN} classifier}
+
+\subsection{Parameter settings}
+
+\subsection{Evaluation measures}
 
 
 \section{Results}
