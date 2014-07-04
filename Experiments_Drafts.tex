@@ -1,95 +1,58 @@
 \chapter{Experiments and results}
 
+We evaluate the metric learning method described in this thesis in two ways. Firstly, we evaluate how well the learned metric approximates the target metric. In other words, how well does the method align feature space to the structured output space? This can be measured by the \acf{MSE} between the learned distances in feature space and the loss in output space. Secondly, we evaluate how much the learned metric improves performance over the default Euclidean metric on the overall prediction task. We do this by measuring the task-specific performance of a \ac{kNN} classifier in both the learned space and Euclidean space.
 
-%evaluate metric alignment method, need datasets with a target metric, developed for structered prediction problems where the loss function is a target metric
-In order to evaluate the metric alignment method we use two datasets from structured prediction problems. The first dataset comes from an attribute-based classification problem, while the second comes from a semantic segmentation problem. Both these datasets have the property that there is a well-defined real-valued loss defined on the structured output space. This property allows us to test the idea of aligning the feature space to the output space through metric alignment. 
+We run these evaluations on two datasets taken from structured prediction problems. The first dataset comes from an attribute-based classification problem, while the second comes from a semantic segmentation problem. Both these datasets have a real-valued loss defined on the structured output space. This real-valued loss allows us to test the idea of aligning the feature space to the output space through metric alignment by using the loss function as the target metric.
 
-%have to formulate a learning task that tests the metric learning component seperately and the improvement of prediction with metric learning, we present two datasets that can test both these aspects
-There are two things that we want to test with these datasets. Firstly, how well does the metric learned method described in this thesis approximate the target metric. In other words, how well does the method align feature space to the structured output space? This can be measured by the \acf{MSE} between the learned distances in feature space and the loss in output space for the points in the test set. The second result we want to evaluate is how much the learned metric improves performance over the default Euclidean metric on the overall classification/segmentation task. We do this by applying a \ac{kNN} classifier adapted to solve these structured problems and performance is measured by a task-specific loss function.
+
 
 \section{Datasets}
-%datasets, learning problems, features, ground-truth, loss functions, classes, number of instances, training/test split
+%datasets, learning problems, features, ground-truth, loss functions, classes, number of instances
 
 
 \subsection{Attribute-based classification dataset}
 
-%attribute based classification is an approach to classification in which classes are described by high-level "semantic" attributes, zero shot task, classes uniquely identified by their attributes
 Attribute-based classification is an approach to object recognition which can be applied to problems where there is no training data for the test categories. This problem is known as zero-shot or zero-data learning. In attribute-based classification, classes are described by high-level ``semantic'' attributes. These attributes are properties of an object for which a human can decide whether this property applies to the object. In this way, previously unseen classes can be described by its attributes. By learning the connection between visual features and attributes a classifier can correctly classify members of these unseen classes. 
 
 For our evaluation we use the \acf{AwA} dataset\footnote{Available at \url{http://attributes.kyb.tuebingen.mpg.de/}.} described in \cite{lampert2009learning, lampert2014attribute}. This dataset contains images of 50 different species of mammals. A set of 85 semantic attributes describes each class and the class-attributes table is available in both a continuous-valued matrix as well as a binary one obtained by thresholding at the mean value. Pre-computed features are also available for this dataset and we make use of those.
 \todo{Tables of animals and attributes. Example images.}
 
-%predicting the attributes can be seen as a simple structured prediction problem, with Hamming distance as a loss function on binary attribute vectors
 Lampert et al. describe two different approaches to the attribute based classification: \emph{direct attribute prediction} and \emph{indirect attribute prediction}. For simplicity we will constrain ourselves to the direct attribute prediction method. In this method the learning problem is to learn to predict the attribute vector from the visual features. This problem can be seen as a structured prediction problem in which the output space is a continuous or binary vector space. The natural choice for a loss function in these structured output spaces would be the Euclidean distance and Hamming distance respectively. However, the original attribute-based classification problem does not have the attribute vector itself as output, but the classification which deterministically follows from the predicted attribute values. Hence, the original problems uses more traditional loss measure of normalized multi-class accuracy and area under the ROC curve.
-
-%we propose two learning task on this dataset, the full zero-shot learning task for which the dataset was originally presented and a simpler metric learning task in which the objective is to correctly predict the hamming distance between attributes of two input images
-
-
 
 
 \subsection{Semantic segmentation dataset}
 
-%semantic segmentation is the problem of predicting a per-pixel labeling of an image, where the labels are taken from a fixed set of object classes
-Semantic segmentation is a computer vision problem in which the objective is to segment input images into contiguous regions by assigning labels to each pixel from a predefined set of class labels. 
+Semantic segmentation is a computer vision problem in which the objective is to segment input images into contiguous regions by assigning labels to each pixel. The labels are drawn from a predefined set of object and background class labels. Annotations for the training set are often provided by hand and usually not all pixels receive a label in these annotations.
 
-%patches are extracted that are each described by a single (color)SIFT vector, visually similar patches are close together in feature space, we want semantically similar patches to be close together in feature space, semantic difference is measured by segmentation loss function, we train with segmenation loss function as target metric, learns small distance for large semantic similarity
+For our evaluation we use the \acf{MSRCv2} dataset.\footnote{Available at \url{http://research.microsoft.com/en-us/projects/objectclassrecognition/}.} The \ac{MSRCv2} set consists of 532 images, segmented into 21 classes. The images are loosely segmented, meaning that the annotations are not pixel-perfect. The segmentations cover most of each image with ~30\%\todo{Check this number.} of the pixels not having a label. The 21 classes contain both foreground object classes, e.g. car, cow, face, and background classes, e.g. grass, sky. There is limited variation in appearance and scene within each class as the pictures have been taken in the same manner, often around the same location.
 
-%for our metric learning evaluation, we look at a per patch problem, we compare distances under the learned metric with segmentation loss used as the target metric
+\subsubsection{Evaluation measures}
 
-%for the full learning problem we use a kNN classifier on the patches extracted from the input image, the neighbor patches are then combined into a single segmentation, we see if this improves after metric learning
-
+Semantic segmentation is often evaluated using global pixel accuracy, average class accuracy, or intersection over union accuracy. Global pixel accuracy refers to ...
 
 
-%\section{Experiments}
-%description of experiments, evaluation measures, baselines, parameter settings, conversion of loss to target metric, sampling of constraints, number of repeats with random splits
+\subsubsection{Feature extraction}
 
-%for our experiments we run metric alignment on the datasets described above and compare this against a baseline euclidean measure
-
-%we also compare against existing methods, ITML we have to created binary similarity judgements, we do this by thresholding the target metric at its median value
-
-%parameters for the methods are set by 2-fold cross-validation on the training set
-
-
-\section{Attribute-based classification experiment}
-
-\subsection{Feature extraction}
-
-\subsection{Adapted \ac{kNN} classifier}
-
-\subsection{Parameter settings}
-
-\subsection{Evaluation measures}
-
-\section{Semantic segmentation experiment}
-
-\subsection{Feature extraction}
-
-\subsection{Adapted \ac{kNN} classifier}
-
-\subsection{Parameter settings}
-
-\subsection{Evaluation measures}
-
-
-\section{Results}
-
-
-\subsection{Semantic segmentation}
-
-
-\subsection{Attribute prediction}
+From each training image $\mat{I}$ we extract feature vectors $\mathcal{X}_\mat{I} = \left\{ \vec{x}_1, \vec{x}_2, \ldots, \vec{x}_p \right\}$ on a regular hexagonal grid $(\vec{u}, \vec{v})$, with $\vec{x}_i$ computed from the $d^\prime \times d^\prime$ image area centered on image coordinates $(u_i, v_i)$. Each of these feature vectors $\vec{x}_i$ is paired to a label patch $\vec{y}_i$ of size $d \times d$ taken from the training annotation for the image and centered at $(u_i, v_i)$. Note that the size $d$ for the label patch and $d^\prime$ for the feature patch can be different. Specifically, $d^\prime$ is dependent on the scale of the image features while $d$ is a hyper-parameter that we set. For convenience we define these patches to have the origin $y_{0,0}$ in the center of the patch, such that the subscripts $i$ and $j$ run from $-\tfrac{d}{2}$ to $\tfrac{d}{2}$. Together these feature vectors form a training set $\mathcal{X}_\textsc{train} = \bigcup\left\{\mathcal{X}_\mat{I}: \mat{I} \in \mathcal{I}_\textsc{train} \right\}$.
 
 
 
-\section{Analysis}
 
-%alignment of loss function and feature distance (pearson R statistic, equal axis plot), does the space get more structured? (clustering?)
+\section{Metric alignment experiment}
 
-%variations based on regularizer vs non-regularized
 
-%different choices of loss function as target metric and correlation between input loss and minimized target metric (e.g. if target metric is intersection/union does i/u improve more than if target metric is pixel count)
 
-%choice of constraint sampling and locality of metric, does it pull together similar patches or push appart dissimilar patches
+\subsection{Results}
+
+
+
+\section{Structured prediction experiment}
+
+
+
+\subsection{Results}
+
+
 
 
 
@@ -120,6 +83,8 @@ L(\vec{y}, \vec{y}^\prime) = 1 - \frac{\sum_{i,j} \left [ y_{i,j} = y^\prime_{i,
 
 %semantic segmentation, challenging problem, combines object recognition and image segmentation, applications in image understanding, image retrieval
 Semantic segmentation is a challenging problem that combines object recognition and image segmentation, with applications in image understanding and image retrieval. The objective is to segment input images into contiguous regions by assigning labels to each pixel from a predefined set of class labels, in effect performing a per-pixel classification of the image. Figure \ref{fig:segmentation_examples} shows some example input and output for the semantic segmentation task and we give a more formal description below.
+
+
 
 \begin{quotation}
 \subsubsection*{Semantic segmentation problem.}
