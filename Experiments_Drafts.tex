@@ -26,6 +26,7 @@ Semantic segmentation is a computer vision problem in which the objective is to 
 
 For our evaluation we use the \acf{MSRCv2} dataset.\footnote{Available at \url{http://research.microsoft.com/en-us/projects/objectclassrecognition/}.} The \ac{MSRCv2} set consists of 532 images, segmented into 21 classes. The images are loosely segmented, meaning that the annotations are not pixel-perfect. The segmentations cover most of each image with ~30\%\todo{Check this number.} of the pixels not having a label. The 21 classes contain both foreground object classes, e.g. car, cow, face, and background classes, e.g. grass, sky. There is limited variation in appearance and scene within each class as the pictures have been taken in the same manner, often around the same location.
 
+
 \subsubsection{Loss functions}
 
 Semantic segmentation is often evaluated using global pixel accuracy, average class accuracy, or intersection over union accuracy. Global pixel accuracy refers to 
@@ -37,7 +38,6 @@ From each training image $\mat{I}$ we extract feature vectors $\mathcal{X}_\mat{
 
 
 
-
 \section{Metric alignment experiment}
 
 The first experiment is designed to test how well the metric learning method presented in this thesis can approximate the given target metric, with the target metric being the loss function for the learning problem at hand. If the learned distance in feature space is closely aligned to the loss, this means that the space is well-clustered: small distances in feature space correspond to small loss between the corresponding output structures. This is beneficial for prediction algorithms making predictions in this feature space, an effect which we will evaluate in the next experiment.
@@ -46,34 +46,79 @@ For this experiment we randomly divide the images of each data set 50/50 between
 
 We then sample pairs of feature vectors from the training set on which to train our algorithm. We do this in two ways: sampling locally and globally. With local sampling we calculate the 10 nearest neighbors for each point according to Euclidean distance in the untransformed feature space. This thus results in $10 n$ training pairs. With global sampling we sample $10 n$ random pairs of points without replacement. These pairs form the set $\mathcal{A}$ on which our absolute distance constraints are defined. The absolute distance constraints are completed by choosing a target metric and calculating its value for each of the sampled pairs in $\mathcal{A}$. For the \ac{AwA} set we choose Hamming distance between the attribute vectors corresponding to the classes of the images in the pair. This is calculated as:
 \begin{align}
-d_{\text{H}}(\vec{x}_i, \vec{x}_j) &= \|\vec{a}_i - \vec{a}_j\|_{\text{H}}, \\
+d_{\text{H}}(i, j) &= \|\vec{a}_i - \vec{a}_j\|_{\text{H}}, \\
  &= \sum_{k=1}^{n} \left[ a_{i,k} = a_{j,k} \right],
 \end{align}
 where $(\vec{x}_i, \vec{x}_j)$ is one of the sampled pairs in $\mathcal{A}$ and $\vec{a}_i$ and $\vec{a}_j$ are the corresponding attribute vectors consisting of $n$ binary attribute values $a_{i,k}$. Further $[ \cdot ]$ denote Iverson brackets which take the value 1 if the enclosed equation evaluates as true. For the \ac{MSRCv2} set we use the proportion of overlapping pixel labels between the segmentation patches corresponding to the image patches in the pair calculated as:
 \begin{align}
-d_{\text{P}}(\vec{x}_i, \vec{x}_j) &= L(\vec{y}, \vec{y}^\prime) = 1 - \frac{\sum_{i,j} \left [ y_{i,j} = y^\prime_{i,j}\right]}{\sum_{i,j} \left [y_{i,j}, y^\prime_{i,j} \in \mathcal{L}\right ]}
+d_{\text{P}}(i, j) &= 1 - \text{Acc}(\vec{y}_i, \vec{y}_j) \\
+&= 1 - \frac{ \sum_{k=1}^{n} \left[ y_{i,k} = y_{j,k} \right] }{ \sum_{k=1}^{n} \left[ y_{i,k} \in \mathcal{L} \wedge y_{j,k} \in \mathcal{L} \right]},
 \end{align}
+where $\vec{y}_i$ is the segmentation patch corresponding to the image patch represented by the feature vector $\vec{x}_i$. This patch consists of $n$ elements, here indexed by $k$, and $\mathcal{L}$ denotes the set of possible labels. This measure counts the number of pixels that have the same label as a proportion of the number of pixels that have been labelled in both patches, and subtracts this from one to turn it into a distance function.\todo{Instead of doing this I should just use the loss function.}
 
-We quantify the alignment between the learned metric and the target metric in the form of a squared prediction error, namely the mean squared error 
+We quantify the alignment between the learned metric and the target metric in the form of a squared prediction error, namely the mean squared error between the distances calculated according to the learned metric and the target metric.  We evaluate this on a sample of pairs from the test set, sampled in the same way as the training pairs, either globally or locally. Our \ac{MSE} evaluation measure on the test set is thus calculated as:
+\begin{equation}
+\text{MSE}_{\mathcal{T}}(d_{\mat{A}}, \hat{d}) = 
+\frac{1}{|\mathcal{T}|}\sum_{(i,j) \in \mathcal{T}} \left(d_{\mat{A}}(\vec{x}_i, \vec{x}_j) - \hat{d}(i, j)\right)^2.
+\end{equation} 
+Here $d_{\mat{A}}$ is the learned metric and $\hat{d}$ is the target metric, either $d_{\text{H}}$ or $d_{\text{P}}$. The set $\mathcal{T}$ of pairs $(i,j)$ is the sample of pairs from the test set. Note that this is the same measure that we minimize on the training set during the learning phase.
 
-
-
-
-
+We compare the metric learned by our algorithm against two baselines. Firstly, the Euclidean metric, given by $\mat{A} = \mat{I}$. Secondly, against a metric learned by \acf{ITML}. \cite{davis2007information} However, \ac{ITML} trains on similarity/dissimilarity constraints while we generate absolute distance constraints. Thus we will have to generate similarity/dissimilarity constraints. For the \ac{AwA} dataset this is straightforward, since we can just divide the sampled image pairs into pairs with the same class and with different class. However, doing this for the \ac{MSRCv2} segmentation dataset this is not as straightforward. For this case we threshold the target distance by its mean on the training pairs, and any pair with a target distance under the mean will be taken as similar, while any pair with a distance above the mean will be counted as dissimilar. We calculate the upper and lower bounds $u, \ell$ by computing the $5^{th}$ and $95^{th}$ percentile of Euclidean distance between the sampled training pairs.
 
 \subsection{Results}
+
+
+\subsection{Analysis}
 
 
 
 \section{Structured prediction experiment}
 
+Our second experiment tests the effect of metric alignment on the ability of a \acf{kNN} classifier to predict the correct output. 
 
 
 \subsection{Results}
 
 
+\subsection{Analysis}
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
 
 \chapter*{Old Sections}
 
