@@ -74,7 +74,17 @@ We compare the metric learned by our algorithm against two baselines. Firstly, t
 
 \section{Structured prediction experiment}
 
-Our second experiment tests the effect of metric alignment on the ability of a \acf{kNN} classifier to predict the correct output. 
+Our second experiment tests the effect of metric alignment on the ability of a \acf{kNN} classifier to predict the correct output. The \ac{kNN} classifier depends on nearest neighbors having low loss relative to the ground truth output, thus learning a metric with the loss as target metric should improve prediction performance.
+
+We randomly divide the images of each data set between a training and test set. For the \ac{MSRCv2} set we split the images for each sequence separately in order to maintain a similar class balance between training and test set. For the \ac{AwA} set we split the images in two different ways. Firstly in a standard multi-class learning approach, where half of the images for each class are added to one of the two sets. Secondly in a zero-shot learning approach, where all images of certain classes are added to the training set while for the test classes none of the images are in the training set. \todo{Numbers, zero-shot test classes. Add XXX numbers of features.}
+
+We again train our metric learning method on the test set in the same way as in the previous experiment. Then we apply the learned metric as a transformation on the input features and apply an adapted \ac{kNN} classifier, described below, to generate predictions. We evaluate this experiment on the prediction accuracy. For the zero-shot learning this is given by ....
+... \todo{Finish evaluation metrics explanation.}
+
+
+\subsection{Structured kNN predictors}
+
+
 
 
 \subsection{Results}
