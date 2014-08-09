@@ -1,4 +1,4 @@
-\documentclass[a4paper]{report}
+\documentclass[a4paper,twoside,openright]{report}
 \usepackage{listings}
 \usepackage{graphicx}
 \usepackage[font=small,labelfont=bf]{caption}
@@ -40,8 +40,8 @@
 
 \renewcommand{\vec}[1]{\mathbf{#1}}
 \newcommand{\mat}[1]{\mathbf{#1}}
-\DeclareMathOperator*{\argmax}{arg\,max}
-\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\!\max}
+\DeclareMathOperator*{\argmin}{arg\!\min}
 
 \newcommand{\tr}[0]{\text{tr}}
 
@@ -55,6 +55,8 @@
 \acrodef{PSD}{positive semi-definite}
 \acrodef{SVM}{support vector machine}
 \acrodef{AwA}{animals with attributes}
+\acrodef{MSRCv1}{Microsoft research Cambridge}
+\acrodef{FLANN}{fast library for approximate nearest neighbors}
 
 %\title{Metric alignment}
 %\title{Aligning metric to a distance function in an unknown space.}
@@ -66,18 +68,23 @@
 %\title{}
 
 
-\author{Carsten van Weelden  \\ \texttt{cvanweelden@gmail.com} \\ 0518824 \and \small{Supervisor:} \\ Jan van Gemert \\ \texttt{J.C.vanGemert@uva.nl} \and University of Amsterdam\\
-  The Netherlands \\ \\ In partial fulfillment etc.}
-%\date{}                                           % Activate to display a given date or no date
+\author{Carsten van Weelden  \\ \texttt{cvanweelden@gmail.com} \\ 0518824 \and \small{Supervisor:} \\ Jan van Gemert \\ \texttt{J.C.vanGemert@uva.nl} \and \\\\\\ University of Amsterdam\\
+  The Netherlands}
+\date{August 19, 2014}                                           % Activate to display a given date or no date
 
 \begin{document}
 \maketitle
 
-\begin{abstract}
+\newpage\null\thispagestyle{empty}\newpage
 
+\begin{abstract}
+In this thesis we investigated the idea of learning a metric from absolute distance constraints instead of binary similarity/dissimilarity or relative constraints. The metric learning problem is cast as an unconstrained regression problem minimizing squared prediction error between the learned metric and a given target metric. This allows the alignment of the metric in feature space to a target metric in output space. Our results show that our metric correctly minimizes the squared prediction error, but does not necessarily maximize alignment to the target metric.
 \end{abstract}
 
+\newpage\null\thispagestyle{empty}\newpage
+
 \tableofcontents
+
 
 
 %Boxes to write:
